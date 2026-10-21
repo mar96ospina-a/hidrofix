@@ -1,0 +1,364 @@
+/* ============================================================
+   HIDROFIX · CAPA ENTERPRISE (dark grafito + verde Riopaila sobrio)
+   Panel de control serio: superficies planas, líneas finas, esquinas
+   secas, sin glass ni glow, acento verde apagado y puntual.
+   Cargar DESPUÉS de styles.css. Todo tokenizado.
+   ============================================================ */
+
+/* ---------- TOKENS: DARK (grafito, default) ---------- */
+:root {
+  --bg-dark: #141619;
+  --bg-panel: #191c20;
+  --bg-elevated: #1d2126;
+  --bg-head: #20242a;
+  --bg-card-glass: #191c20;
+  --glass-bg: #191c20;
+  --glass-border: #2b2f35;
+  --line: #262a30;
+
+  --primary: #3f8a57;          /* verde Riopaila APAGADO */
+  --primary-strong: #4f9c67;
+  --primary-soft: rgba(63, 138, 87, 0.12);
+  --secondary: #2f6b43;
+  --accent-info: #5878a3;      /* azul acero discreto */
+  --accent-gold: #b8923e;
+  --danger: #c05058;
+  --warn: #c08a3a;
+
+  --text-main: #e4e7ea;
+  --text-muted: #8a929b;
+  --text-dim: #5b636c;
+
+  --radius-sm: 4px;
+  --radius: 6px;
+  --radius-lg: 8px;
+
+  --shadow-sm: none;
+  --shadow: 0 1px 2px rgba(0,0,0,.25);
+  --shadow-lg: 0 4px 14px -6px rgba(0,0,0,.45);
+
+  --gradient-main: none;
+
+  --login-bg-start: #131518;
+  --login-bg-end: #181b20;
+  --login-card-bg: #1a1e23;
+
+  --font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+/* ---------- TOKENS: LIGHT (enterprise claro sobrio) ---------- */
+:root[data-theme="light"] {
+  --bg-dark: #eceef1;
+  --bg-panel: #ffffff;
+  --bg-elevated: #ffffff;
+  --bg-head: #f1f3f6;
+  --bg-card-glass: #ffffff;
+  --glass-bg: #ffffff;
+  --glass-border: #d7dbe0;
+  --line: #e3e6ea;
+
+  --primary: #2f7a47;
+  --primary-strong: #276a3d;
+  --primary-soft: rgba(47, 122, 71, 0.08);
+  --accent-gold: #9a7420;
+
+  --text-main: #1a1f26;
+  --text-muted: #5d6671;
+  --text-dim: #8a929b;
+
+  --shadow-sm: none;
+  --shadow: 0 1px 2px rgba(16,24,40,.06);
+  --shadow-lg: 0 6px 18px -8px rgba(16,24,40,.14);
+
+  --gradient-main: none;
+  --login-bg-start: #eef1f4;
+  --login-bg-end: #dfe3e8;
+  --login-card-bg: #ffffff;
+}
+
+/* ---------- BASE ---------- */
+body {
+  background: var(--bg-dark) !important;
+  color: var(--text-main);
+  letter-spacing: 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+::-webkit-scrollbar { width: 9px; height: 9px; }
+::-webkit-scrollbar-thumb { background: var(--line); border-radius: 0; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
+
+/* Línea de marca superior: fina, sólida, sobria (sin arcoíris) */
+body::before {
+  content:""; position: fixed; inset: 0 0 auto 0; height: 2px; z-index: 9999;
+  background: var(--primary); opacity: .9; pointer-events: none;
+}
+
+/* ---------- PANELES (planos, línea fina, sin blur) ---------- */
+.glass-panel {
+  background: var(--glass-bg) !important;
+  border: 1px solid var(--glass-border) !important;
+  border-radius: var(--radius) !important;
+  box-shadow: var(--shadow) !important;
+  backdrop-filter: none !important;
+  transition: border-color .15s;
+}
+.glass-panel:hover { border-color: #363b42 !important; box-shadow: var(--shadow) !important; }
+
+/* Encabezado de sección: barra de acento fina */
+.glass-panel > h2, .glass-panel > h3, .section-title, h2.section-title {
+  position: relative; padding-left: 12px; letter-spacing: .3px; font-weight: 700;
+}
+.glass-panel > h2::before, .glass-panel > h3::before, .section-title::before {
+  content:""; position:absolute; left:0; top:50%; transform:translateY(-50%);
+  width:3px; height:1em; border-radius:0; background: var(--primary);
+}
+
+/* ---------- KPI CARDS (planos, borde izq fino, número tabular) ---------- */
+.kpi-card, .kpi-card-enhanced, .stat-card {
+  position: relative;
+  background: var(--bg-elevated) !important;
+  border: 1px solid var(--glass-border) !important;
+  border-left: 3px solid var(--primary) !important;
+  border-radius: var(--radius) !important;
+  box-shadow: none !important;
+  overflow: hidden;
+  transition: border-color .15s;
+}
+.kpi-card::before, .kpi-card-enhanced::before, .stat-card::before { content: none !important; }
+.kpi-card:hover, .kpi-card-enhanced:hover, .stat-card:hover {
+  transform: none !important; border-color: #363b42 !important;
+  border-left-color: var(--primary-strong) !important; box-shadow: none !important;
+}
+.stat-value, .kpi-value, .kpi-info h3 {
+  font-weight: 700 !important; letter-spacing: -.3px; color: var(--text-main) !important;
+  font-variant-numeric: tabular-nums;
+}
+.stat-label, .kpi-label, .kpi-info p {
+  text-transform: uppercase; letter-spacing: .9px; font-size: .66rem !important;
+  color: var(--text-muted) !important; font-weight: 600 !important;
+}
+.kpi-icon {
+  background: var(--primary-soft) !important; color: var(--primary) !important;
+  border-radius: var(--radius-sm) !important; box-shadow: none !important;
+}
+.kpi-trend { padding: 1px 7px; border-radius: 3px; font-weight: 700; font-size: .7rem; }
+.kpi-trend.up   { color: var(--primary) !important; background: var(--primary-soft); }
+.kpi-trend.down { color: var(--danger) !important; background: rgba(192,80,88,.14); }
+
+/* ---------- SIDEBAR (plano grafito) ---------- */
+.sidebar {
+  background: var(--bg-panel) !important;
+  border-right: 1px solid var(--glass-border) !important;
+  box-shadow: none !important;
+}
+.nav-item {
+  border-radius: var(--radius-sm) !important; margin: 1px 6px;
+  color: var(--text-muted); transition: background .12s, color .12s;
+}
+.nav-item:hover { background: rgba(255,255,255,.04) !important; color: var(--text-main) !important; transform: none; }
+.nav-item.active {
+  background: var(--primary-soft) !important; color: var(--primary-strong) !important; position: relative;
+}
+.nav-item.active::before {
+  content:""; position:absolute; left:0; top:20%; bottom:20%; width:2px; border-radius:0; background: var(--primary);
+}
+
+/* ---------- BADGES / ESTADOS ---------- */
+.status-badge { border-radius: 3px !important; font-weight: 600; letter-spacing: .4px; padding: 2px 9px !important; }
+
+/* ---------- BOTONES (sólidos, sin degradado ni glow) ---------- */
+button.primary, .btn-primary, .module-btn, .big-btn {
+  background: var(--primary) !important; border: 1px solid var(--primary-strong) !important;
+  box-shadow: none !important; border-radius: var(--radius-sm) !important;
+  transition: background .12s;
+}
+button.primary:hover, .btn-primary:hover, .module-btn:hover, .big-btn:hover {
+  transform: none !important; filter: none; background: var(--primary-strong) !important; box-shadow: none !important;
+}
+
+/* Consistencia: aplana CUALQUIER botón con degradado (cualquier ángulo), sin tocar fondos */
+button[style*="linear-gradient"] {
+  background-image: none !important; background-color: var(--primary) !important;
+  color: #fff !important; box-shadow: none !important; border-radius: var(--radius-sm) !important;
+  border: 1px solid var(--primary-strong) !important;
+}
+button[style*="linear-gradient"]:hover { background-color: var(--primary-strong) !important; transform: none !important; }
+
+/* Acentos azules brillantes heredados (#0ea5e9 / #38bdf8) → azul acero sobrio */
+[style*="#0ea5e9"] { color: var(--accent-info) !important; }
+.brand i[color] { color: var(--primary) !important; }
+
+/* ---------- LOGIN (sobrio, plano) ---------- */
+#login-screen, .login-screen, .login-wrapper {
+  background: linear-gradient(160deg, var(--login-bg-start), var(--login-bg-end)) !important;
+}
+.login-card, .user-select-card, .login-box {
+  border-radius: var(--radius-lg) !important; box-shadow: var(--shadow-lg) !important;
+  border: 1px solid var(--glass-border) !important; backdrop-filter: none !important;
+}
+.user-pick, .user-tile, [class*="user-card"] {
+  border-radius: var(--radius) !important; transition: border-color .15s;
+}
+.user-pick:hover, .user-tile:hover, [class*="user-card"]:hover {
+  transform: none !important; box-shadow: none !important; border-color: var(--primary) !important;
+}
+
+/* Login serio: tarjeta plana, esquinas secas, sin blur fuerte */
+#view-login > div[style*="border-radius: 2rem"] {
+  border-radius: var(--radius-lg) !important;
+  background: var(--bg-panel) !important;
+  backdrop-filter: none !important;
+  box-shadow: 0 2px 10px rgba(0,0,0,.4) !important;
+}
+#view-login #login-user-grid > * {
+  border-radius: var(--radius) !important;
+}
+/* Los 4 usuarios en una sola fila (escritorio); se adapta en pantallas chicas */
+#view-login #login-user-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+}
+@media (max-width: 860px) {
+  #view-login #login-user-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+}
+@media (max-width: 480px) {
+  #view-login #login-user-grid { grid-template-columns: 1fr !important; }
+}
+/* Tarjetas de usuario: compactas y redondeadas */
+#view-login #login-user-grid {
+  max-width: 760px; margin: 0 auto; gap: 1rem !important;
+}
+#view-login #login-user-grid .user-card {
+  padding: 1.1rem 0.85rem !important;
+  gap: 0.7rem !important;
+  border-radius: 22px !important;
+}
+#view-login #login-user-grid .user-card > div:first-child {
+  width: 60px !important; height: 60px !important;
+}
+#view-login #login-user-grid .user-card > div:first-child svg,
+#view-login #login-user-grid .user-card > div:first-child img,
+#view-login #login-user-grid .user-card > div:first-child > div {
+  width: 60px !important; height: 60px !important; font-size: 1.25rem !important;
+}
+#view-login #login-user-grid .user-card h3 { font-size: 0.95rem !important; }
+#view-login #login-user-grid .user-card p { font-size: 0.72rem !important; }
+
+/* ---------- ENCABEZADO DASHBOARD (sin texto degradado) ---------- */
+.dashboard-header h1, .banner h1, [class*="dashboard"] h1 {
+  font-weight: 700; letter-spacing: -.3px;
+  -webkit-text-fill-color: currentColor; background: none; color: var(--text-main);
+}
+
+/* ---------- TABLAS: pulido enterprise (#4) ---------- */
+table th {
+  background: var(--bg-head) !important;
+  font-variant-numeric: tabular-nums;
+}
+table td { font-variant-numeric: tabular-nums; }
+/* Zebra muy sutil en filas de datos */
+.glass-panel table tbody tr:nth-child(even) > td { background: rgba(127,140,160,.035); }
+:root[data-theme="light"] .glass-panel table tbody tr:nth-child(even) > td { background: rgba(16,24,40,.025); }
+/* Hover de fila */
+.glass-panel table tbody tr:hover > td { background: rgba(63,138,87,.07) !important; }
+/* Estado vacío coherente */
+.empty-state, td.empty-state {
+  text-align: center; color: var(--text-dim); padding: 2.2rem 1rem;
+  font-size: .85rem; letter-spacing: .3px;
+}
+
+/* ---------- SEMÁFORO: lenguaje de color único (#5) ---------- */
+.sem-dot { display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:5px; vertical-align:middle; }
+.sem-ok   { background: var(--primary); }
+.sem-warn { background: var(--warn, #c08a3a); }
+.sem-crit { background: var(--danger); }
+.sem-none { background: var(--text-dim); }
+.sem-legend {
+  display:flex; gap:1.1rem; flex-wrap:wrap; align-items:center;
+  color: var(--text-muted); font-size:.72rem; margin:.1rem 0 1rem; letter-spacing:.3px;
+}
+.sem-legend b { color: var(--text-main); font-weight:600; }
+
+/* ============================================================
+   SISTEMA DE DISEÑO · uniformidad gerencial entre TODOS los módulos
+   Normaliza lo que cada módulo define en línea: encabezados, inputs,
+   tiles KPI, píldoras y densidad de tabla. Clases reutilizables para
+   migrar módulos progresivamente.
+   ============================================================ */
+
+/* --- Encabezado de módulo (un solo tamaño/peso en todo el app) --- */
+.view-section > div:first-child > h1,
+.view-section > header h1,
+.view-section h1 {
+  font-size: 1.6rem !important; font-weight: 700 !important;
+  letter-spacing: -.2px; color: var(--text-main); margin: 0;
+}
+.view-section h1 + p,
+.view-section header p {
+  color: var(--text-muted) !important; font-size: .9rem; margin: 4px 0 0;
+}
+
+/* --- Controles de formulario coherentes (dentro de vistas, no modales) --- */
+.view-section input[type="text"], .view-section input[type="search"],
+.view-section input[type="date"], .view-section input[type="number"],
+.view-section select, .view-section textarea {
+  background: var(--bg-panel); color: var(--text-main);
+  border: 1px solid var(--glass-border) !important;
+  border-radius: var(--radius-lg) !important;
+  padding: .5rem .7rem; font-size: .88rem; outline: none;
+  transition: border-color .12s, box-shadow .12s;
+}
+.view-section input:focus, .view-section select:focus, .view-section textarea:focus {
+  border-color: var(--primary) !important; box-shadow: 0 0 0 2px var(--primary-soft);
+}
+
+/* --- Píldoras de estado reutilizables --- */
+.pill { display:inline-block; padding:3px 10px; border-radius:999px; font-size:.72rem; font-weight:700; line-height:1.45; }
+.pill-ok   { background: var(--primary-soft); color: var(--primary-strong); }
+.pill-warn { background: rgba(192,138,58,.16); color: var(--warn); }
+.pill-crit { background: rgba(192,80,88,.16); color: var(--danger); }
+.pill-info { background: rgba(88,120,163,.16); color: var(--accent-info); }
+
+/* --- Fila e indicadores KPI reutilizables --- */
+.kpi-row { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; margin-bottom:1.5rem; }
+.kpi-tile { background: var(--bg-elevated); border:1px solid var(--glass-border); border-radius: var(--radius); padding:.9rem 1.1rem; }
+.kpi-tile .k-label { font-size:.72rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:.5px; }
+.kpi-tile .k-value { font-size:1.6rem; font-weight:800; color:var(--text-main); margin-top:2px; line-height:1.1; }
+
+/* --- Botón secundario / ghost coherente --- */
+.btn-ghost {
+  background:transparent; color:var(--text-muted);
+  border:1px solid var(--glass-border); border-radius:var(--radius-lg);
+  padding:.5rem .9rem; font-size:.85rem; cursor:pointer;
+  display:inline-flex; align-items:center; gap:6px; transition:border-color .12s, color .12s;
+}
+.btn-ghost:hover { border-color:var(--primary); color:var(--text-main); }
+
+/* --- Botones de icono coherentes --- */
+.btn-icon { background:none; border:none; cursor:pointer; padding:4px; border-radius:var(--radius-sm); color:var(--text-muted); transition:background .12s, color .12s; }
+.btn-icon:hover { background: var(--primary-soft); }
+
+/* --- Densidad de tabla uniforme (más aire, menos ruido) --- */
+.modern-table th { padding:.72rem .9rem !important; font-size:.7rem !important; letter-spacing:.5px; }
+.modern-table td { padding:.72rem .9rem !important; }
+
+/* --- Pestañas tipo píldora (Configuración y similares) --- */
+.config-tabs-wrap { display:inline-flex; background:var(--primary-soft); padding:4px; border-radius:10px; gap:4px; margin-bottom:1.5rem; }
+.config-tab-btn { padding:7px 16px; border-radius:7px; border:none; background:transparent; color:var(--text-muted); cursor:pointer; font-weight:700; font-size:.82rem; transition:background .12s, color .12s; }
+.config-tab-btn:hover { color:var(--text-main); }
+.config-tab-btn.active { background:var(--primary); color:#fff; }
+
+/* --- Encabezado de tarjeta (título + acción) --- */
+.card-header { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:1rem; }
+.card-header h2, .card-header h3 { margin:0; font-size:1rem; font-weight:700; color:var(--text-main); }
+.card-header .btn-primary, .card-header button.btn-primary {
+  padding:.5rem 1rem !important; font-size:.85rem; font-weight:700; border-radius:var(--radius-lg) !important;
+  display:inline-flex; align-items:center; gap:6px;
+}
+
+/* --- Tabla de datos (listados maestros) con contenedor tipo panel --- */
+.data-table { width:100%; border-collapse:collapse; font-size:.88rem; border:1px solid var(--glass-border); border-radius:var(--radius); overflow:hidden; }
+.data-table th { text-align:left; padding:.72rem .9rem; background:var(--bg-head); color:var(--text-muted); font-size:.7rem; text-transform:uppercase; letter-spacing:.5px; font-weight:700; border-bottom:1px solid var(--glass-border); }
+.data-table td { padding:.72rem .9rem; border-bottom:1px solid var(--glass-border); color:var(--text-main); }
+.data-table tbody tr:last-child td { border-bottom:none; }
+.data-table tbody tr:hover > td { background:rgba(63,138,87,.07); }

@@ -1,0 +1,3118 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        Hidrofix Manager
+    </title>
+    <!-- PWA -->
+    <!--
+    <link rel="manifest" href="manifest.json">
+    -->
+    <meta name="theme-color" content="#0f172a">
+    <link rel="icon" type="image/png" href="icon-192.png">
+    <!-- External Libs -->
+    <link rel="stylesheet" href="./styles.css">
+    <link rel="stylesheet" href="./theme-gerencial.css?v=9">
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Lucide Icons (Modern replacements for feather) -->
+    <script src="https://unpkg.com/lucide@latest">
+    </script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js">
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0">
+    </script>
+    <!-- Export Libraries -->
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js">
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js">
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js">
+    </script>
+    <!-- Leaflet Maps -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
+    </script>
+    <!-- Backend: Supabase (nube) en vez del servidor Node local. Debe cargar ANTES de authmanager/datamanager. -->
+    <script src="supabase-config.js?v=1"></script>
+    <script src="api-shim.js?v=2"></script>
+    <!-- Controllers (Order Matters) -->
+    <script src="authmanager.js?v=1.0.5"></script>
+    <script src="datamanager.js?v=1.0.4"></script>
+    <script src="materialprices.js?v=1.0.1"></script>
+    <script src="branding.js?v=1.0.1"></script>
+    <script src="auditoriacontroller.js?v=1.0.1"></script>
+    <script src="alertsengine.js?v=1.0.1"></script>
+    <script src="dashboardcontroller.js?v=1.0.1"></script>
+    <script src="planescontroller.js?v=1.0.4"></script>
+    <script src="equiposcontroller.js?v=1.0.1"></script>
+    <script src="capexcontroller.js?v=1.0.1"></script>
+    <script src="laborescontroller.js?v=1.0.1"></script>
+    <script src="materialescontroller.js?v=1.0.1"></script>
+    <script src="boletascontroller.js?v=1.0.7"></script>
+    <script src="derivacionescontroller.js?v=1.0.1"></script>
+    <script src="configcontroller.js?v=1.0.2"></script>
+    <script src="actividadescontroller.js?v=1.0.3"></script>
+    <script src="centrocontroller.js?v=1.0.10"></script>
+    <script src="recyclebincontroller.js?v=1.0.2"></script>
+    <script src="mapcontroller.js?v=1.0.1"></script>
+    <script src="profilecontroller.js?v=1.0.1"></script>
+    <script src="calendarcontroller.js?v=1.0.1"></script>
+</head>
+
+<body>
+    <div id="app" class="app-container">
+        <!-- VIEW: LOGIN / USER SELECTION -->
+        <div id="view-login"
+            style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 10000; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+            <!-- 1. Background Image with Blur -->
+            <div
+                style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, var(--login-bg-start) 0%, var(--login-bg-end) 100%); filter: blur(20px); transform: scale(1.1); z-index: -2;">
+            </div>
+            <!-- 2. Dark Overlay (30%) -->
+            <div
+                style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.3); z-index: -1;">
+            </div>
+            <!-- Theme Toggle (Login Screen) -->
+            <button onclick="toggleTheme()" class="btn-icon"
+                style="position: absolute; top: 2rem; right: 2rem; padding: 1rem; background: rgba(255, 255, 255, 0.2); border: 1px solid rgba(255, 255, 255, 0.5); border-radius: 50%; color: white; backdrop-filter: blur(5px);">
+                <i data-lucide="sun" id="login-theme-icon">
+                </i>
+            </button>
+            <!-- Main Glass Container -->
+            <div
+                style="position: relative; background: var(--login-card-bg); padding: 3rem; border-radius: 2rem; border: 1px solid var(--glass-border); backdrop-filter: blur(10px); text-align: center; box-shadow: 0 20px 60px -15px rgba(0, 0, 0, 0.2); max-width: 900px; width: 95%;">
+                <!-- Dual Logo Container -->
+                <div
+                    style="display: flex; gap: 1.5rem; justify-content: center; align-items: center; margin-bottom: 2rem;">
+                    <!-- Logo Empresa -->
+                    <div
+                        style="width: 100px; height: 100px; display: flex; align-items: center; justify-content: center; overflow: hidden; padding: 5px; background: rgba(255,255,255,0.5); border-radius: 1rem; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+                        <img src="logo_empresa.png" style="width: 100%; height: 100%; object-fit: contain;">
+                    </div>
+                    <!-- Logo Area -->
+                    <div
+                        style="width: 100px; height: 100px; display: flex; align-items: center; justify-content: center; overflow: hidden; padding: 5px; background: rgba(255,255,255,0.5); border-radius: 1rem; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+                        <img src="logo_area.png"
+                            style="width: 100%; height: 100%; object-fit: contain; transform: scale(1.3);">
+                    </div>
+                </div>
+                <h1
+                    style="font-size: 2.5rem; font-weight: 800; margin-bottom: 0.5rem; letter-spacing: -0.5px; color: var(--login-text); text-shadow: 0 0 20px rgba(255,255,255,0.1);">
+                    HIDROFIX
+                </h1>
+                <p
+                    style="color: var(--login-text-muted); margin-bottom: 3rem; letter-spacing: 2px; font-size: 0.9rem; text-transform: uppercase; font-weight: 600;">
+                    Seleccione su usuario para ingresar
+                </p>
+                <div id="server-status-indicator"
+                    style="margin-top: -2.5rem; margin-bottom: 2rem; font-size: 0.85rem; font-weight: 600;">
+                    <!-- Status injected by AuthManager.js -->
+                </div>
+                <!-- User Grid (Dynamic) -->
+                <div id="login-user-grid"
+                    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; width: 100%;">
+                    <!-- Loaded dynamically via AuthManager.renderUserCards() -->
+                </div>
+            </div>
+            <p style="margin-top: 3rem; font-size: 0.75rem; color: #64748b; letter-spacing: 1px;">
+                HIDROFIX MANAGER v2.1 &copy; 2026
+            </p>
+        </div>
+        <!-- PASSWORD MODAL (Hidden by default) -->
+        <div id="password-modal"
+            style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 20000; align-items: center; justify-content: center; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px);">
+            <div class="glass-panel"
+                style="padding: 2rem; width: 90%; max-width: 350px; text-align: center; border: 1px solid var(--glass-border); box-shadow: 0 10px 25px rgba(0,0,0,0.5); background: var(--login-card-bg); animation: popIn 0.3s ease;">
+                <button onclick="closePasswordModal()"
+                    style="position: absolute; top: 1rem; right: 1rem; background: transparent; border: none; color: white; cursor: pointer;">
+                    <i data-lucide="x">
+                    </i>
+                </button>
+                <div id="selected-user-avatar"
+                    style="width: 60px; height: 60px; background: rgba(255,255,255,0.1); border-radius: 50%; margin: 0 auto 1rem; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">
+                    👤
+                </div>
+                <h3 id="selected-user-name" style="margin-bottom: 0.5rem; color: white;">
+                    Usuario
+                </h3>
+                <p style="color: var(--text-muted); font-size: 0.8rem; margin-bottom: 1.5rem;">
+                    Ingrese su contraseña
+                </p>
+                <form onsubmit="AuthManager.handlePasswordSubmit(event)">
+                    <input type="hidden" id="modal-username">
+                    <input type="password" id="modal-password" class="input-dark" placeholder="Contraseña..." autofocus
+                        style="width: 100%; margin-bottom: 1rem; text-align: center; letter-spacing: 2px;" required>
+                    <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center;">
+                        Ingresar
+                    </button>
+                    <p id="modal-error"
+                        style="color: #ef4444; font-size: 0.8rem; margin-top: 0.5rem; min-height: 1.2rem;">
+                    </p>
+                </form>
+            </div>
+        </div>
+        <!-- STYLE FOR USER CARDS HOVER -->
+        <style>
+            .user-card:hover {
+                transform: translateY(-5px);
+                background: rgba(255, 255, 255, 0.9) !important;
+                box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15) !important;
+                border-color: rgba(255, 255, 255, 1) !important;
+            }
+        </style>
+        <!-- VIEW: WELCOME (Intersticial) -->
+        <div id="view-welcome-analyst"
+            style="position: fixed; top: 0; left: 0; width: 100%; z-index: 10001; display: none; height: 100vh; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; opacity: 0; transition: opacity 0.5s ease;">
+            <!-- 1. Background Image with Blur (Shared with Login) -->
+            <div
+                style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, var(--login-bg-start) 0%, var(--login-bg-end) 100%); filter: blur(20px); transform: scale(1.1); z-index: -2;">
+            </div>
+            <!-- 2. Dark Overlay (30%) -->
+            <div
+                style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.3); z-index: -1;">
+            </div>
+            <!-- Glass Card Container -->
+            <div
+                style="position: relative; background: rgba(255, 255, 255, 0.75); padding: 4rem 3rem; border-radius: 2rem; border: 1px solid rgba(255, 255, 255, 1); backdrop-filter: blur(10px); text-align: center; box-shadow: 0 20px 60px -15px rgba(0, 0, 0, 0.2); max-width: 600px; width: 90%;">
+                <h1
+                    style="font-size: 3rem; margin-bottom: 0.5rem; color: #0f172a; font-weight: 800; letter-spacing: -1px;">
+                    HOLA,
+                    <span id="welcome-user-name" style="color: #0ea5e9; text-transform: uppercase;">
+                        Usuario
+                    </span>
+                </h1>
+                <p style="font-size: 1.1rem; color: #475569; margin-bottom: 3rem; letter-spacing: 0.5px;">
+                    Bienvenido de nuevo a Hidrofix Manager
+                </p>
+                <button onclick="continueToApp()" class="btn-primary"
+                    style="font-size: 1rem; padding: 1rem 2.5rem; border-radius: 1rem; background: linear-gradient(135deg, #0f172a 0%, #334155 100%); border: 1px solid rgba(255,255,255,0.1); color: white; box-shadow: 0 10px 20px -10px rgba(15, 23, 42, 0.5); font-weight: 600; letter-spacing: 0.5px; transition: transform 0.2s ease;">
+                    Continuar al Dashboard
+                    <i data-lucide="arrow-right" style="margin-left: 0.5rem;">
+                    </i>
+                </button>
+            </div>
+        </div>
+        <div id="global-error-log"
+            style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 200px; background: rgba(50,0,0,0.9); color: #ffcccc; overflow-y: scroll; z-index: 99999; font-family: monospace; padding: 10px; border-bottom: 2px solid red;">
+            <strong>
+                Global Error Log (Share this with support):
+            </strong>
+            <br>
+        </div>
+        <script>
+            window.onerror = function (msg, url, line, col, error) {
+                // Ignore generic Script error from extensions or file:// protocol
+                if (msg && msg.indexOf('Script error') > -1 && (!line || line === 0)) {
+                    console.warn("Ignored generic script error:", msg);
+                    return false;
+                }
+                // FORCE ALERT for real errors
+                // alert("CRITICAL ERROR: " + msg + "\nEn: " + url + ":" + line); 
+                const log = document.getElementById('global-error-log');
+                if (log) {
+                    log.style.display = 'block';
+                    log.innerHTML += "<div>[" + new Date().toLocaleTimeString() + "] " + msg + " (" + url + ":" + line + ")</div>";
+                }
+                console.error("Global Error Caught:", msg, url, line, col, error);
+                return false;
+            };
+        </script>
+        <!-- Sidebar -->
+        <aside class="sidebar" id="main-sidebar" style="display: none;">
+            <div>
+                <div class="brand" style="align-items:center;gap:.6rem;">
+                    <i data-lucide="droplets" style="color:var(--primary);width:26px;height:26px;"></i>
+                    <div style="line-height:1.05;">
+                        <div style="color:var(--text-main);font-weight:800;letter-spacing:.5px;font-size:1.15rem;">HIDROFIX</div>
+                        <div style="color:var(--text-muted);font-weight:600;font-size:.6rem;letter-spacing:1px;text-transform:uppercase;">Riopaila Agrícola</div>
+                    </div>
+                </div>
+                <ul class="nav-menu">
+                    <li class="nav-item" onclick="navigate('boletas')">
+                        <i data-lucide="mail-check">
+                        </i>
+                        Boletas emitidas
+                    </li>
+                    <li class="nav-item" onclick="navigate('calendario')">
+                        <i data-lucide="calendar">
+                        </i>
+                        Calendario
+                    </li>
+                    <li class="nav-item" onclick="navigate('programacion')">
+                        <i data-lucide="message-square">
+                        </i>
+                        Programación Diaria
+                    </li>
+                    <li class="nav-item" onclick="navigate('centro')" style="font-weight:600;">
+                        <i data-lucide="gauge">
+                        </i>
+                        Mantenimiento Diésel
+                    </li>
+                    <li class="nav-item" onclick="navigate('actividades')">
+                        <i data-lucide="clipboard-list">
+                        </i>
+                        Labores de Campo
+                    </li>
+                    <li class="nav-item" onclick="navigate('equipos')">
+                        <i data-lucide="truck">
+                        </i>
+                        Maestro de Equipos
+                    </li>
+                    <li class="nav-item" onclick="navigate('materiales')">
+                        <i data-lucide="package">
+                        </i>
+                        Maestro Materiales
+                    </li>
+                    <!-- OCULTOS hasta definir si se tienen en cuenta (restaurar quitando el comentario)
+                    <li class="nav-item" onclick="navigate('derivaciones')">
+                        <i data-lucide="git-branch">
+                        </i>
+                        Información Derivaciones
+                    </li>
+                    <li class="nav-item" onclick="navigate('mapa')">
+                        <i data-lucide="map">
+                        </i>
+                        Mapa Operativo
+                    </li>
+                    -->
+                </ul>
+                <ul class="nav-menu"
+                    style="border-top: 1px solid rgba(255,255,255,0.1); margin-top: 1rem; padding-top: 1rem;">
+                    <li class="nav-item" id="nav-recycle-bin" onclick="navigate('papelera')" style="color: #ef4444;">
+                        <i data-lucide="trash-2">
+                        </i>
+                        Papelera (Global)
+                    </li>
+                    <li class="nav-item" id="nav-auditoria" onclick="navigate('auditoria')">
+                        <i data-lucide="shield-alert">
+                        </i>
+                        Auditoría Mantto.
+                    </li>
+                    <li class="nav-item" id="nav-config" onclick="navigate('config')"
+                        style="color: var(--text-muted); border-top: 1px solid rgba(255,255,255,0.1); margin-top: 0;">
+                        <i data-lucide="settings">
+                        </i>
+                        Configuración
+                    </li>
+                    <li class="nav-item" id="nav-sync" onclick="DataManager.loadFromCloud().then(() =>
+              window.location.reload())" style="color: var(--text-muted);">
+                        <i data-lucide="refresh-cw">
+                        </i>
+                        Sincronizar Datos
+                    </li>
+                    <li class="nav-item" onclick="runDiagnostics()" style="color: var(--text-muted);">
+                        <i data-lucide="activity" style="color: #f59e0b;">
+                        </i>
+                        Diagnóstico
+                    </li>
+                    <li class="nav-item" onclick="toggleTheme()" style="color: var(--text-muted); margin-top: 1rem;">
+                        <i data-lucide="sun" id="theme-icon">
+                        </i>
+                        Cambiar Tema
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Sidebar Footer: Profile Info -->
+            <div id="sidebar-profile-footer"
+                style="padding: 1.5rem; border-top: 1px solid rgba(255,255,255,0.1); margin-top: auto;">
+                <div onclick="navigate('perfil')"
+                    style="display: flex; align-items: center; gap: 12px; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 1rem; cursor: pointer; transition: 0.3s; border: 1px solid transparent;"
+                    onmouseover="this.style.background='rgba(255,255,255,0.1)'; this.style.borderColor='rgba(14, 165, 233, 0.3)'"
+                    onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.borderColor='transparent'">
+                    <div id="sidebar-avatar-container"
+                        style="width: 40px; height: 40px; background: #0ea5e9; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; overflow: hidden; flex-shrink: 0;">
+                        <!-- Injected by AuthManager -->
+                    </div>
+                    <div style="overflow: hidden;">
+                        <p id="sidebar-user-name"
+                            style="margin: 0; font-size: 0.85rem; font-weight: 700; color: var(--text-main); white-space: nowrap; text-overflow: ellipsis;">
+                            Usuario</p>
+                        <p
+                            style="margin: 0; font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">
+                            Mi Perfil</p>
+                    </div>
+                </div>
+                <button onclick="AuthManager.logout()"
+                    style="width: 100%; margin-top: 12px; padding: 10px; background: transparent; border: 1px solid rgba(239, 68, 68, 0.2); color: #ef4444; border-radius: 10px; font-size: 0.8rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.3s;"
+                    onmouseover="this.style.background='rgba(239, 68, 68, 0.1)'"
+                    onmouseout="this.style.background='transparent'">
+                    <i data-lucide="log-out" style="width: 14px; height: 14px;"></i> Cerrar Sesión
+                </button>
+            </div>
+        </aside>
+        <script>
+            // Theme Logic
+            function initTheme() {
+                const savedTheme = localStorage.getItem('hidrofix-theme') || 'dark';
+                if (savedTheme === 'light') {
+                    document.documentElement.setAttribute('data-theme', 'light');
+                    updateThemeIcon(true);
+                }
+            }
+
+            function toggleTheme() {
+                const current = document.documentElement.getAttribute('data-theme');
+                const isDark = !current || current === 'dark';
+                if (isDark) {
+                    document.documentElement.setAttribute('data-theme', 'light');
+                    localStorage.setItem('hidrofix-theme', 'light');
+                    updateThemeIcon(true);
+                } else {
+                    document.documentElement.removeAttribute('data-theme');
+                    localStorage.setItem('hidrofix-theme', 'dark');
+                    updateThemeIcon(false);
+                }
+            }
+
+            function updateThemeIcon(isLight) {
+                // Sidebar Icon
+                const icon = document.getElementById('theme-icon');
+                const text = document.getElementById('theme-text');
+                // Login Screen Icon
+                const loginIcon = document.getElementById('login-theme-icon');
+
+                if (isLight) {
+                    if (icon) icon.setAttribute('data-lucide', 'moon');
+                    if (text) text.textContent = 'Modo Oscuro';
+                    if (loginIcon) {
+                        loginIcon.setAttribute('data-lucide', 'moon');
+                        // Make parent button transparent/visible for light mode
+                        loginIcon.parentElement.style.background = 'transparent';
+                        loginIcon.parentElement.style.color = '#000';
+                    }
+                } else {
+                    if (icon) icon.setAttribute('data-lucide', 'sun');
+                    if (text) text.textContent = 'Modo Claro';
+                    if (loginIcon) {
+                        loginIcon.setAttribute('data-lucide', 'sun');
+                        // Reset parent style
+                        loginIcon.parentElement.style.background = 'rgba(255,255,255,0.1)';
+                        loginIcon.parentElement.style.color = '#fff';
+                    }
+                }
+                if (window.lucide) lucide.createIcons();
+            }
+
+            function runDiagnostics() {
+                let report = "DIAGNÓSTICO DEL SISTEMA:\n\n";
+
+                // 1. Check LocalStorage Usage
+                let total = 0;
+                for (let x in localStorage) {
+                    if (localStorage.hasOwnProperty(x)) {
+                        total += ((localStorage[x].length * 2) / 1024 / 1024);
+                    }
+                }
+                report += `💾 Almacenamiento Local: ${total.toFixed(2)} MB usados\n`;
+
+                // 2. Check Controllers
+                const controllers = [
+                    'DashboardController',
+                    'LaboresController',
+                    'EquiposController',
+                    'MaterialesController',
+                    'BoletasController',
+                    'DataManager',
+                    'AuthManager'
+                ];
+                let active = 0;
+                controllers.forEach(c => {
+                    if (window[c]) active++;
+                });
+                report += `⚙️ Controladores Activos: ${active} / ${controllers.length}\n`;
+
+                // 3. User Session
+                if (window.currentUser) {
+                    report += `👤 Usuario: ${window.currentUser.name} (${window.currentUser.role})\n`;
+                } else {
+                    report += `👤 Usuario: No detectado\n`;
+                }
+
+                alert(report);
+            }
+
+            // Run immediately
+            initTheme();
+        </script>
+        <!-- Main Content Area -->
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- TOPBAR ENTERPRISE -->
+            <div id="app-topbar" style="position:sticky;top:0;z-index:50;margin:-12px -16px 16px -16px;padding:.6rem 1.2rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;background:var(--bg-panel);border-bottom:1px solid var(--glass-border);">
+                <div style="display:flex;align-items:center;gap:.55rem;min-width:0;">
+                    <span style="width:3px;height:16px;background:var(--primary);border-radius:0;flex:none;"></span>
+                    <span id="topbar-module" style="color:var(--text-main);font-size:.82rem;letter-spacing:.4px;text-transform:uppercase;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Mantenimiento</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:1rem;flex:none;">
+                    <span id="topbar-sync" style="color:var(--text-dim);font-size:.7rem;white-space:nowrap;"></span>
+                    <button onclick="toggleTheme()" title="Cambiar tema" style="background:transparent;border:1px solid var(--glass-border);color:var(--text-muted);border-radius:4px;width:30px;height:30px;cursor:pointer;display:flex;align-items:center;justify-content:center;"><i data-lucide="sun-moon" style="width:15px;height:15px;"></i></button>
+                    <button onclick="AuthManager.logout()" title="Cerrar sesión" style="background:transparent;border:1px solid var(--glass-border);color:var(--text-muted);border-radius:4px;width:30px;height:30px;cursor:pointer;display:flex;align-items:center;justify-content:center;"><i data-lucide="log-out" style="width:15px;height:15px;"></i></button>
+                    <div style="display:flex;align-items:center;gap:.5rem;padding-left:.6rem;border-left:1px solid var(--glass-border);">
+                        <div id="topbar-avatar" style="flex:none;"></div>
+                        <div style="line-height:1.15;">
+                            <div id="topbar-name" style="font-size:.78rem;font-weight:600;color:var(--text-main);white-space:nowrap;">—</div>
+                            <div id="topbar-role" style="font-size:.63rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.4px;white-space:nowrap;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- VIEW: DASHBOARD -->
+            <div id="view-dashboard" class="view-section" style="display: block;">
+                <header id="dashboard-header"
+                    style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--glass-border); width: 100%;">
+                    <div style="text-align: left;">
+                        <h1
+                            style="font-size: 2.2rem; font-weight: 800; letter-spacing: -0.5px; margin: 0; background: linear-gradient(to right, var(--primary), #88C336); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">
+                            Dashboard de Seguimiento
+                        </h1>
+                        <p style="color: var(--text-muted); margin: 0.5rem 0 0 0; font-size: 1rem; font-weight: 500;">
+                            Resumen de operaciones en tiempo real
+                        </p>
+                    </div>
+                    <div id="dashboard-date-display"
+                        style="text-align: right; color: var(--text-muted); font-size: 0.9rem; font-weight: 600;">
+                        <i data-lucide="calendar"
+                            style="width: 14px; height: 14px; vertical-align: middle; margin-right: 0.25rem;"></i>
+                        <span id="current-date-text">-</span>
+                    </div>
+                </header>
+                <!-- Dashboard Tabs -->
+                <div
+                    style="display: flex; gap: 1rem; margin-bottom: 2rem; border-bottom: 1px solid var(--glass-border);">
+                    <button id="dash-tab-mantenimiento" class="tab-btn active"
+                        onclick="DashboardController.switchTab('mantenimiento')">
+                        MANTENIMIENTO
+                    </button>
+                    <button id="dash-tab-labores" class="tab-btn" onclick="DashboardController.switchTab('labores')">
+                        LABORES DIARIAS
+                    </button>
+                    <button id="dash-tab-finanzas" class="tab-btn" onclick="DashboardController.switchTab('finanzas')">
+                        CAPEX
+                    </button>
+                    <button id="dash-tab-insumos" class="tab-btn" onclick="DashboardController.switchTab('insumos')">
+                        INSUMOS
+                    </button>
+                </div>
+                <!-- TAB: MANTENIMIENTO -->
+                <div id="dash-mantenimiento" class="dash-tab-content">
+                    <!-- Sub-tabs for Mantenimiento -->
+                    <div
+                        style="display: flex; gap: 0.75rem; margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                        <button id="mtto-subtab-operativo" class="btn"
+                            onclick="DashboardController.switchMaintenanceSubTab('operativo')"
+                            style="background: var(--primary); color: white; padding: 0.6rem 1.2rem; border-radius: 8px; font-weight: 600; display: inline-flex; align-items: center; gap: 0.5rem;">
+                            <i data-lucide="zap" style="width: 18px; height: 18px;">
+                            </i>
+                            Operativo
+                        </button>
+                        <button id="mtto-subtab-analitica" class="btn"
+                            onclick="DashboardController.switchMaintenanceSubTab('analitica')"
+                            style="background: rgba(255,255,255,0.05); color: var(--text-muted); padding: 0.6rem 1.2rem; border-radius: 8px; font-weight: 600; display: inline-flex; align-items: center; gap: 0.5rem;">
+                            <i data-lucide="bar-chart-3" style="width: 18px; height: 18px;">
+                            </i>
+                            Analítica
+                        </button>
+                    </div>
+                    <!-- OPERATIVO SECTION -->
+                    <div id="mtto-section-operativo">
+                        <!-- Machinery Alerts Widget (New) -->
+                        <div id="diesel-alerts-widget" class="glass-panel"
+                            style="margin-bottom: 2rem; border: 1px solid rgba(239, 68, 68, 0.2); background: rgba(239, 68, 68, 0.03); display: none;">
+                            <div
+                                style="padding: 1rem; border-bottom: 1px solid rgba(239, 68, 68, 0.1); display: flex; justify-content: space-between; align-items: center;">
+                                <div style="display: flex; align-items: center; gap: 0.5rem; color: #ef4444;">
+                                    <i data-lucide="alert-circle" size="20">
+                                    </i>
+                                    <span style="font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">
+                                        Alertas de Maquinaria Diésel
+                                    </span>
+                                </div>
+                                <span id="diesel-alert-count" class="badge badge-danger">
+                                    0
+                                </span>
+                            </div>
+                            <div id="diesel-alerts-container"
+                                style="max-height: 200px; overflow-y: auto; padding: 1rem; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem;">
+                                <!-- Alert items injected here -->
+                            </div>
+                        </div>
+                        <!-- Contractor Control Widget (New) -->
+                        <div id="contractor-widget" class="glass-panel"
+                            style="margin-bottom: 2rem; border: 1px solid rgba(59, 130, 246, 0.2); background: rgba(59, 130, 246, 0.03);">
+                            <div
+                                style="padding: 1rem; border-bottom: 1px solid rgba(59, 130, 246, 0.1); display: flex; justify-content: space-between; align-items: center;">
+                                <div style="display: flex; align-items: center; gap: 0.5rem; color: #3b82f6;">
+                                    <i data-lucide="truck" size="20">
+                                    </i>
+                                    <span style="font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">
+                                        Control de Terceros (Contratistas)
+                                    </span>
+                                </div>
+                                <span id="contractor-count" class="badge" style="background: #3b82f6; color: white;">
+                                    0
+                                </span>
+                            </div>
+                            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1rem; padding: 1rem;">
+                                <!-- List -->
+                                <div id="contractor-list-container"
+                                    style="max-height: 250px; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1rem;">
+                                    <!-- Items injected here -->
+                                </div>
+                                <!-- CAPEX/OPEX Chart -->
+                                <div
+                                    style="display: flex; flex-direction: column; align-items: center; justify-content: center; border-left: 1px solid var(--glass-border); padding-left: 1rem;">
+                                    <h4
+                                        style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.5rem; text-transform: uppercase;">
+                                        Distribución de Gasto
+                                    </h4>
+                                    <div style="height: 180px; width: 100%;">
+                                        <canvas id="capex-opex-chart">
+                                        </canvas>
+                                    </div>
+                                    <div id="capex-opex-legend"
+                                        style="margin-top: 0.5rem; font-size: 0.75rem; color: var(--text-muted); text-align: center;">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="dashboard-grid">
+                            <div class="glass-panel stat-card">
+                                <i data-lucide="activity" color="#10b981" size="24">
+                                </i>
+                                <span class="stat-value" id="kpi-efficiency">
+                                    100%
+                                </span>
+                                <span class="stat-label">
+                                    Eficiencia Operativa
+                                </span>
+                            </div>
+                            <div class="glass-panel stat-card">
+                                <i data-lucide="clock" color="#f59e0b" size="24">
+                                </i>
+                                <span class="stat-value" id="kpi-pending">
+                                    0
+                                </span>
+                                <span class="stat-label">
+                                    Planes Programados
+                                </span>
+                            </div>
+                            <div class="glass-panel stat-card">
+                                <i data-lucide="dollar-sign" color="#10b981" size="24">
+                                </i>
+                                <span class="stat-value" id="kpi-investment">
+                                    $ 0
+                                </span>
+                                <span class="stat-label">
+                                    Inversión Total
+                                </span>
+                            </div>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+                            <!-- WIDGET 1: ESTADO DE SALUD (GRAFICO) -->
+                            <div class="glass-panel"
+                                style="padding: 1.5rem; display: flex; flex-direction: column; align-items: center;">
+                                <h3
+                                    style="margin-bottom: 1rem; color: var(--text-muted); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px;">
+                                    Semáforo de Criticidad - Maquinaria Diesel
+                                </h3>
+                                <div style="width: 250px; height: 250px; position: relative;">
+                                    <canvas id="fleet-health-chart">
+                                    </canvas>
+                                    <!-- Center Text Overlay -->
+                                    <div
+                                        style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
+                                        <span id="fleet-health-total"
+                                            style="font-size: 2rem; font-weight: 700; color: var(--text-main);">
+                                            0
+                                        </span>
+                                        <div style="font-size: 0.7rem; color: var(--text-muted);">
+                                            EQUIPOS
+                                        </div>
+                                    </div>
+                                </div>
+                                <div
+                                    style="display: flex; gap: 1rem; margin-top: 1rem; font-size: 0.8rem; color: var(--text-muted);">
+                                    <span style="display: flex; align-items: center; gap: 0.3rem;">
+                                        <span style="width: 8px; height: 8px; background: #10b981; border-radius: 50%;">
+                                        </span>
+                                        Operativo
+                                    </span>
+                                    <span style="display: flex; align-items: center; gap: 0.3rem;">
+                                        <span style="width: 8px; height: 8px; background: #f59e0b; border-radius: 50%;">
+                                        </span>
+                                        Alerta
+                                    </span>
+                                    <span style="display: flex; align-items: center; gap: 0.3rem;">
+                                        <span style="width: 8px; height: 8px; background: #ef4444; border-radius: 50%;">
+                                        </span>
+                                        Crítico
+                                    </span>
+                                </div>
+                            </div>
+                            <!-- WIDGET 2: LISTA DE ATENCIÓN INMEDIATA -->
+                            <div class="glass-panel"
+                                style="padding: 1.5rem; display: flex; flex-direction: column; width: 100%;">
+                                <div
+                                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                                    <h3
+                                        style="color: var(--text-muted); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px;">
+                                        Atención Requerida
+                                    </h3>
+                                    <button class="btn-icon" onclick="EquiposController.renderDashboardWidgets()"
+                                        title="Actualizar">
+                                        <i data-lucide="refresh-cw" size="14">
+                                        </i>
+                                    </button>
+                                </div>
+                                <div id="fleet-alerts-list"
+                                    style="flex: 1; overflow-y: auto; max-height: 250px; padding-right: 0.5rem; display: flex; flex-direction: column; gap: 0.8rem;">
+                                    <!-- Alerts injected by JS -->
+                                    <div
+                                        style="text-align: center; color: var(--text-muted); padding: 2rem; font-style: italic;">
+                                        <i data-lucide="check-circle" style="color: #10b981; margin-bottom: 0.5rem;">
+                                        </i>
+                                        <br>
+                                        Flota operativa. Sin alertas activas.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- End OPERATIVO SECTION -->
+                    <!-- ANALÍTICA SECTION -->
+                    <div id="mtto-section-analitica" style="display: none;">
+                        <!-- ANALYTICS SECTION -->
+                        <div style="margin-top: 3rem; padding-top: 2rem; border-top: 2px solid var(--glass-border);">
+                            <div
+                                style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem;">
+                                <div>
+                                    <h2
+                                        style="margin: 0; color: var(--primary); display: flex; align-items: center; gap: 0.5rem;">
+                                        <i data-lucide="bar-chart-3">
+                                        </i>
+                                        Analítica de Mantenimientos
+                                    </h2>
+                                    <p style="margin: 0.5rem 0 0 0; color: var(--text-muted); font-size: 0.9rem;">
+                                        Costos OPEX, secuencias y cumplimiento
+                                    </p>
+                                </div>
+                                <button class="btn-primary" onclick="MaintenanceDashboard.init()"
+                                    style="display: inline-flex; align-items: center; gap: 0.5rem; border-radius: 12px;">
+                                    <i data-lucide="refresh-cw" style="width: 16px; height: 16px;">
+                                    </i>
+                                    Actualizar
+                                </button>
+                            </div>
+                            <!-- Analytics Content Container -->
+                            <div id="maintenance-dashboard-content">
+                                <div style="text-align: center; padding: 3rem; color: var(--text-muted);">
+                                    <i data-lucide="loader"
+                                        style="width: 48px; height: 48px; margin-bottom: 1rem; animation: spin 1s linear infinite;">
+                                    </i>
+                                    <p>
+                                        Cargando analítica...
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- End MTTO ANALÍTICA -->
+                    </div>
+                    <!-- End TAB: MANTENIMIENTO -->
+                </div>
+                <!-- TAB: LABORES -->
+                <div id="dash-labores" class="dash-tab-content" style="display: none;">
+                    <!-- Container for Statistics ONLY -->
+                    <div id="dash-labores-stats-container" style="margin-bottom: 2rem;">
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
+                        <div class="glass-panel"
+                            style="padding: 1.5rem; display: flex; flex-direction: column; align-items: center;">
+                            <h3
+                                style="margin-bottom: 1rem; color: var(--text-muted); font-size: 0.9rem; text-transform: uppercase;">
+                                Estado de Reportes
+                            </h3>
+                            <div style="width: 250px; height: 250px;">
+                                <canvas id="labores-status-chart">
+                                </canvas>
+                            </div>
+                        </div>
+                        <div class="glass-panel"
+                            style="padding: 1.5rem; display: flex; flex-direction: column; align-items: center; width: 100%;">
+                            <h3
+                                style="margin-bottom: 1rem; color: var(--text-muted); font-size: 0.9rem; text-transform: uppercase;">
+                                Actividad Reciente
+                            </h3>
+                            <div style="width: 100%; height: 250px;">
+                                <canvas id="labores-activity-chart">
+                                </canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- TAB: FINANZAS (CAPEX DASHBOARD) -->
+                <div id="dash-finanzas" class="dash-tab-content" style="display: none;">
+                    <!-- 1. KPI Cards (Budget, Spent, Balance) -->
+                    <!-- 1. KPI Cards (Budget, Spent, Balance) -->
+                    <div class="dashboard-grid" style="margin-bottom: 3rem;">
+                        <div class="glass-panel stat-card">
+                            <i data-lucide="piggy-bank" color="#3b82f6" size="24">
+                            </i>
+                            <span class="stat-value" id="kpi-budget-total">
+                                $ 0
+                            </span>
+                            <span class="stat-label">
+                                Presupuesto Total (Planificado)
+                            </span>
+                        </div>
+                        <div class="glass-panel stat-card">
+                            <i data-lucide="trending-up" color="#f59e0b" size="24">
+                            </i>
+                            <span class="stat-value" id="kpi-budget-spent">
+                                $ 0
+                            </span>
+                            <span class="stat-label">
+                                Ejecutado (Real)
+                            </span>
+                        </div>
+                        <div class="glass-panel stat-card">
+                            <i data-lucide="wallet" color="#10b981" size="24">
+                            </i>
+                            <span class="stat-value" id="kpi-budget-balance">
+                                $ 0
+                            </span>
+                            <span class="stat-label">
+                                Saldo Disponible
+                            </span>
+                        </div>
+                    </div>
+                    <!-- 2. Charts Row -->
+                    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; margin-bottom: 3rem;">
+                        <!-- Bar Chart: Planned vs Real -->
+                        <div class="glass-panel" style="padding: 1.5rem; display: flex; flex-direction: column;">
+                            <h3
+                                style="margin-bottom: 1rem; color: var(--text-muted); font-size: 0.9rem; text-transform: uppercase;">
+                                Comparativa: Planificado vs Real
+                            </h3>
+                            <div style="flex: 1; min-height: 250px;">
+                                <canvas id="capex-bar-chart">
+                                </canvas>
+                            </div>
+                        </div>
+                        <!-- Donut: Utilization -->
+                        <div class="glass-panel"
+                            style="padding: 1.5rem; display: flex; flex-direction: column; align-items: center;">
+                            <h3
+                                style="margin-bottom: 1rem; color: var(--text-muted); font-size: 0.9rem; text-transform: uppercase;">
+                                Utilización de Presupuesto
+                            </h3>
+                            <div style="width: 220px; height: 220px; position: relative;">
+                                <canvas id="capex-utilization-chart">
+                                </canvas>
+                                <div
+                                    style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
+                                    <span id="capex-utilization-text"
+                                        style="font-size: 1.5rem; font-weight: 700; color: var(--text-main);">
+                                        0%
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- 3. Detailed Project List -->
+                    <div class="glass-panel" style="padding: 1.5rem; margin-bottom: 3rem;">
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                            <h3 style="color: var(--text-muted); font-size: 0.9rem; text-transform: uppercase;">
+                                Estado de Proyectos Activos
+                            </h3>
+                            <!-- Filters could go here -->
+                        </div>
+                        <div id="capex-projects-list" style="display: flex; flex-direction: column; gap: 1rem;">
+                            <!-- Injected via JS -->
+                            <div style="text-align: center; padding: 2rem; color: var(--text-muted);">
+                                Cargando proyectos...
+                            </div>
+                        </div>
+                    </div>
+                    <div class="glass-panel"
+                        style="padding: 1.5rem; display: flex; flex-direction: column; align-items: center; width: 100%;">
+                        <h3
+                            style="margin-bottom: 1rem; color: var(--text-muted); font-size: 0.9rem; text-transform: uppercase;">
+                            Ejecución Presupuestal
+                        </h3>
+                        <div style="width: 100%; height: 250px;">
+                            <canvas id="finance-budget-chart">
+                            </canvas>
+                        </div>
+                    </div>
+                </div>
+                <!-- Floating Notepad (Analyst Only) -->
+                <button class="floating-fab" onclick="DashboardController.toggleNotepad()" title="Bloc de Notas">
+                    <i data-lucide="edit-3" size="24">
+                    </i>
+                </button>
+                <div id="notepad-panel" class="glass-panel notepad-panel">
+                    <div
+                        style="padding-bottom: 0.5rem; margin-bottom: 0.5rem; border-bottom: 1px solid var(--glass-border); display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-weight: 600; font-size: 0.9rem; color: var(--secondary);">
+                            BLOC DE NOTAS
+                        </span>
+                        <div style="font-size: 0.7rem; color: var(--text-muted);" id="notepad-status">
+                            Guardado
+                        </div>
+                    </div>
+                    <textarea id="notepad-content" class="notepad-textarea" placeholder="Apuntes personales..."
+                        spellcheck="false">
+              </textarea>
+                </div>
+                <!-- TAB: INSUMOS (BOLETAS) -->
+                <div id="dash-insumos" class="dash-tab-content" style="display: none;">
+                    <!-- Filter Row -->
+                    <div class="flex justify-between items-center" style="margin-bottom: 3rem;">
+                        <div class="filter-bar-enhanced ml-auto" style="display: flex; align-items: center; gap: 1rem;">
+                            <!-- Icon Label -->
+                            <label for="insumos-month-picker" style="cursor: pointer;">
+                                <i data-lucide="calendar" class="w-4 h-4 text-muted">
+                                </i>
+                            </label>
+                            <!-- 1. Month Picker -->
+                            <div class="filter-input-group">
+                                <input type="month" id="insumos-month-picker" class="filter-input-enhanced"
+                                    style="background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); color: white; padding: 0.5rem; border-radius: 0.5rem;">
+                            </div>
+                            <!-- 2. Scope Filter -->
+                            <div class="filter-input-group">
+                                <select id="insumos-scope-filter" class="filter-select-enhanced"
+                                    style="background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); color: white; padding: 0.5rem; border-radius: 0.5rem;">
+                                    <option value="month">
+                                        Vista Mensual
+                                    </option>
+                                    <option value="year">
+                                        Vista Anual
+                                    </option>
+                                    <option value="all">
+                                        Histórico Global
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- ALERTS CONTAINER -->
+                    <div id="alerts-container" class="alerts-container">
+                        <!-- Alerts will be injected here by JavaScript -->
+                    </div>
+                    <!-- KPI Grid -->
+                    <div class="kpi-grid"
+                        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+                        <!-- 1. Boletas -->
+                        <div class="glass-panel stat-card" style="padding: 1.5rem;">
+                            <div class="kpi-icon icon-blue" style="margin-bottom: 0.5rem;">
+                                <i data-lucide="package">
+                                </i>
+                            </div>
+                            <div>
+                                <h3 id="insumos-kpi-total-items"
+                                    style="font-size: 1.5rem; font-weight: bold; margin: 0;">
+                                    0
+                                </h3>
+                                <p style="font-size: 0.85rem; color: #2d3748; font-weight: 600; margin-top: 4px;">
+                                    Boletas Generadas
+                                </p>
+                            </div>
+                        </div>
+                        <!-- 2. Costo -->
+                        <div class="glass-panel stat-card" style="padding: 1.5rem;">
+                            <div class="kpi-icon icon-green" style="margin-bottom: 0.5rem;">
+                                <i data-lucide="dollar-sign">
+                                </i>
+                            </div>
+                            <div>
+                                <h3 id="insumos-kpi-cost" style="font-size: 1.5rem; font-weight: bold; margin: 0;">
+                                    $ 0
+                                </h3>
+                                <p style="font-size: 0.85rem; color: #2d3748; font-weight: 600; margin-top: 4px;">
+                                    Costo Est. Mes
+                                </p>
+                            </div>
+                        </div>
+                        <!-- 3. Aceite -->
+                        <div class="glass-panel stat-card" style="padding: 1.5rem; cursor: pointer;"
+                            onclick="DashboardController.showFuelDetails('oil')">
+                            <div class="kpi-icon icon-orange" style="margin-bottom: 0.5rem;">
+                                <i data-lucide="droplet">
+                                </i>
+                            </div>
+                            <div>
+                                <h3 id="insumos-kpi-oil" style="font-size: 1.5rem; font-weight: bold; margin: 0;">
+                                    0 gal
+                                </h3>
+                                <p style="font-size: 0.85rem; color: #2d3748; font-weight: 600; margin-top: 4px;">
+                                    Aceite Retirado
+                                </p>
+                            </div>
+                        </div>
+                        <!-- 4. ACPM -->
+                        <div class="glass-panel stat-card" style="padding: 1.5rem; cursor: pointer;"
+                            onclick="DashboardController.showFuelDetails('diesel')">
+                            <div class="kpi-icon icon-blue" style="margin-bottom: 0.5rem;">
+                                <i data-lucide="fuel">
+                                </i>
+                            </div>
+                            <div>
+                                <h3 id="insumos-kpi-diesel" style="font-size: 1.5rem; font-weight: bold; margin: 0;">
+                                    0 gal
+                                </h3>
+                                <p style="font-size: 0.85rem; color: #2d3748; font-weight: 600; margin-top: 4px;">
+                                    ACPM (Diesel)
+                                </p>
+                            </div>
+                        </div>
+                        <!-- 5. Gasolina -->
+                        <div class="glass-panel stat-card" style="padding: 1.5rem; cursor: pointer;"
+                            onclick="DashboardController.showFuelDetails('gas')">
+                            <div class="kpi-icon icon-red" style="margin-bottom: 0.5rem;">
+                                <i data-lucide="flame">
+                                </i>
+                            </div>
+                            <div>
+                                <h3 id="insumos-kpi-gas" style="font-size: 1.5rem; font-weight: bold; margin: 0;">
+                                    0 gal
+                                </h3>
+                                <p style="font-size: 0.85rem; color: #2d3748; font-weight: 600; margin-top: 4px;">
+                                    Gasolina
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- HALLAZGO PRINCIPAL -->
+                    <div id="insumos-main-insight" class="glass-panel"
+                        style="padding: 1.5rem; margin-bottom: 2rem; background: linear-gradient(135deg, rgba(4, 104, 58, 0.05), rgba(51, 179, 71, 0.05)); border: 1px solid rgba(4, 104, 58, 0.2); display: none;">
+                        <!-- Content will be injected by JavaScript -->
+                    </div>
+                    <!-- Chart Grid -->
+                    <div style="display: flex; flex-direction: column; gap: 1.5rem; margin-bottom: 2rem;">
+                        <!-- ROW 1 -->
+                        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem;">
+                            <div class="glass-panel" style="padding: 1.5rem;">
+                                <h3
+                                    style="font-size: 0.95rem; color: #2d3748; font-weight: 700; margin-bottom: 1.2rem; text-transform: uppercase; letter-spacing: 0.5px;">
+                                    Tendencia de Gasto Diario
+                                </h3>
+                                <div style="height: 300px; width: 100%;">
+                                    <canvas id="insumos-trend-chart">
+                                    </canvas>
+                                </div>
+                            </div>
+                            <div class="glass-panel" style="padding: 1.5rem;">
+                                <h3
+                                    style="font-size: 0.95rem; color: #2d3748; font-weight: 700; margin-bottom: 1.2rem; text-transform: uppercase; letter-spacing: 0.5px;">
+                                    Distribución por Categoría
+                                </h3>
+                                <div style="height: 300px; width: 100%;">
+                                    <canvas id="insumos-cost-chart">
+                                    </canvas>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- ROW 2 -->
+                        <div class="glass-panel" style="padding: 1.5rem;">
+                            <h3
+                                style="font-size: 0.95rem; color: #2d3748; font-weight: 700; margin-bottom: 1.2rem; text-transform: uppercase; letter-spacing: 0.5px;">
+                                Top Mayor Gasto
+                            </h3>
+                            <div style="height: 250px; width: 100%;">
+                                <canvas id="insumos-dest-chart">
+                                </canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- End view-dashboard -->
+            <!-- VIEW: PAPELERA DE RECICLAJE -->
+            <div id="view-papelera" class="view-section" style="display: none;">
+                <header
+                    style="display: flex; justify-content: center; align-items: center; margin-bottom: 2rem; position: relative;">
+                    <div style="text-align: center;">
+                        <h1 style="font-size: 1.8rem; font-weight: 700;">
+                            Papelera de Reciclaje
+                        </h1>
+                        <p style="color: var(--text-muted);">
+                            Recupera elementos eliminados recientemente
+                        </p>
+                    </div>
+                    <div style="position: absolute; right: 0;">
+                        <button class="btn"
+                            style="background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2);"
+                            onclick="RecycleBinController.emptyTrash()">
+                            <i data-lucide="trash">
+                            </i>
+                            Vaciar Papelera
+                        </button>
+                    </div>
+                </header>
+                <div id="recycle-bin-content">
+                </div>
+            </div>
+            <!-- VIEW: CONFIGURACIÓN -->
+            <div id="view-config" class="view-section" style="display: none;">
+                <div style="margin-bottom: 1.5rem;">
+                    <h1 style="font-size: 1.6rem; font-weight: 700; margin: 0; color: var(--text-main);">Configuración del sistema</h1>
+                    <p style="color: var(--text-muted); margin: 4px 0 0; font-size: 0.9rem;">Administración de listados maestros</p>
+                </div>
+                <div class="config-tabs-wrap">
+                    <button id="config-tab-personal" class="config-tab-btn active"
+                        onclick="ConfigController.switchTab('personal')">Personal</button>
+                    <button id="config-tab-ubicaciones" class="config-tab-btn"
+                        onclick="ConfigController.switchTab('ubicaciones')">Ubicaciones</button>
+                    <button id="config-tab-cargos" class="config-tab-btn"
+                        onclick="ConfigController.switchTab('cargos')">Cargos</button>
+                    <button id="config-tab-respaldo" class="config-tab-btn"
+                        onclick="ConfigController.switchTab('respaldo')">Respaldo</button>
+                </div>
+                <div id="config-content">
+                </div>
+            </div>
+            <!-- VIEW: LABORES DIARIAS (Independent Module) -->
+            <div id="view-labores" class="view-section" style="display: none;">
+                <header
+                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                    <div>
+                        <h1 style="font-size: 1.8rem; font-weight: 700;">
+                            Labores Diarias
+                        </h1>
+                        <p style="color: var(--text-muted);">
+                            Gestión y reporte de tareas en campo
+                        </p>
+                    </div>
+                </header>
+                <div id="labores-content" style="padding-top: 1rem;">
+                    <!-- Rendered by LaboresController -->
+                </div>
+            </div>
+            <!-- VIEW: FINANZAS (Independent Module) -->
+            <div id="view-finanzas" class="view-section" style="display: none;">
+                <header
+                    style="display: flex; justify-content: center; align-items: center; margin-bottom: 2rem; text-align: center;">
+                    <div>
+                        <h1 style="font-size: 1.8rem; font-weight: 700;">
+                            Gestión Financiera
+                        </h1>
+                        <p style="color: var(--text-muted);">
+                            Control de costos y presupuesto
+                        </p>
+                    </div>
+                </header>
+                <div class="glass-panel" style="padding: 2rem; text-align: center; color: var(--text-muted);">
+                    <i data-lucide="hammer" size="48" style="margin-bottom: 1rem; opacity: 0.5;">
+                    </i>
+                    <p>
+                        Módulo de gestión financiera detallada en construcción.
+                    </p>
+                </div>
+            </div>
+            <!-- VIEW: DERIVACIONES -->
+            <div id="view-derivaciones" class="view-section" style="display: none;">
+                <!-- Content injected by DerivacionesController -->
+            </div>
+            <!-- VIEW: MAPA OPERATIVO -->
+            <div id="view-mapa" class="view-section" style="display: none;">
+                <header
+                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                    <div>
+                        <h1 style="font-size: 1.8rem; font-weight: 700; text-transform: uppercase;">
+                            Mapa Operativo
+                        </h1>
+                        <p style="color: var(--text-muted);">
+                            Geolocalización técnica de derivaciones
+                        </p>
+                    </div>
+                </header>
+                <div class="glass-panel"
+                    style="padding: 1rem; height: calc(100vh - 200px); min-height: 500px; border-radius: 1.5rem; overflow: hidden; position: relative; z-index: 1;">
+                    <div id="main-map" style="width: 100%; height: 100%; border-radius: 1rem;">
+                    </div>
+                </div>
+            </div>
+            <!-- VIEW: MI PERFIL -->
+            <div id="view-perfil" class="view-section" style="display: none;">
+                <!-- Content will be injected by ProfileController.js -->
+            </div>
+            <!-- VIEW: CALENDARIO -->
+            <div id="view-calendario" class="view-section" style="display: none;">
+                <!-- Header with Title and Navigation -->
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                    <div>
+                        <h1 style="font-size: 1.8rem; font-weight: 700;">
+                            Calendario de Mantenimientos
+                        </h1>
+                        <p style="color: var(--text-muted); font-size: var(--font-size-small);">
+                            Visualiza y gestiona planes programados
+                        </p>
+                    </div>
+                    <div style="display: flex; gap: 0.75rem; align-items: center;">
+                        <button class="btn" onclick="CalendarController.prevMonth()" title="Mes Anterior">
+                            <i data-lucide="chevron-left">
+                            </i>
+                        </button>
+                        <h2 id="calendar-month-year"
+                            style="min-width: 180px; text-align: center; font-size: var(--font-size-heading); font-weight: var(--font-weight-semibold);">
+                            Diciembre 2025
+                        </h2>
+                        <button class="btn" onclick="CalendarController.nextMonth()" title="Mes Siguiente">
+                            <i data-lucide="chevron-right">
+                            </i>
+                        </button>
+                        <button class="btn-primary" onclick="CalendarController.goToToday()"
+                            style="margin-left: 0.5rem; font-size: var(--font-size-small); padding: 0.5rem 1rem; border-radius: 0.5rem;">
+                            Hoy
+                        </button>
+                        <button class="btn" onclick="CalendarController.exportToICS()" title="Exportar a Outlook"
+                            style="font-size: var(--font-size-small); padding: 0.5rem 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                            <i data-lucide="download" style="width: 16px; height: 16px;">
+                            </i>
+                            Exportar
+                        </button>
+                    </div>
+                </div>
+                <!-- Filters Bar -->
+                <div class="glass-panel"
+                    style="padding: 1rem; margin-bottom: 1.5rem; display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <i data-lucide="filter" style="width: 16px; height: 16px; color: var(--text-muted);">
+                        </i>
+                        <label
+                            style="font-size: var(--font-size-small); font-weight: var(--font-weight-semibold); color: var(--text-muted);">
+                            Filtros:
+                        </label>
+                    </div>
+                    <select id="calendar-filter-equipo" class="filter-select-enhanced"
+                        style="flex: 1; min-width: 150px; max-width: 200px;" onchange="CalendarController.render()">
+                        <option value="">
+                            Todos los Equipos
+                        </option>
+                        <!-- Options injected by JS -->
+                    </select>
+                    <select id="calendar-filter-estado" class="filter-select-enhanced"
+                        style="flex: 1; min-width: 150px; max-width: 180px;" onchange="CalendarController.render()">
+                        <option value="">
+                            Estados
+                        </option>
+                        <option value="PROGRAMADO">
+                            Programado (a tiempo)
+                        </option>
+                        <option value="VENCIDO">
+                            Vencido
+                        </option>
+                        <option value="REALIZADO">
+                            Realizado
+                        </option>
+                        <option value="PENDIENTE">
+                            Todos los Pendientes
+                        </option>
+                    </select>
+                    <button class="btn" onclick="CalendarController.clearFilters()"
+                        style="margin-left: auto; font-size: var(--font-size-small);">
+                        <i data-lucide="x" style="width: 14px; height: 14px;">
+                        </i>
+                        Limpiar
+                    </button>
+                </div>
+                <!-- Legend and Counters -->
+                <div class="glass-panel" style="padding: 1rem; margin-bottom: 1.5rem;">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                        <!-- Legend -->
+                        <div style="display: flex; gap: 1.5rem; flex-wrap: wrap; font-size: var(--font-size-small);">
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <span style="width: 12px; height: 12px; background: #3b82f6; border-radius: 3px;">
+                                </span>
+                                <span style="color: var(--text-muted);">
+                                    Programado
+                                </span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <span style="width: 12px; height: 12px; background: #f59e0b; border-radius: 3px;">
+                                </span>
+                                <span style="color: var(--text-muted);">
+                                    Vencido (
+                                    < 15 días) </span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <span style="width: 12px; height: 12px; background: #ef4444; border-radius: 3px;">
+                                </span>
+                                <span style="color: var(--text-muted);">
+                                    Vencido (>
+                                    15 días)
+                                </span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <span style="width: 12px; height: 12px; background: #10b981; border-radius: 3px;">
+                                </span>
+                                <span style="color: var(--text-muted);">
+                                    Realizado
+                                </span>
+                            </div>
+                        </div>
+                        <!-- Counters -->
+                        <div id="calendar-counters"
+                            style="display: flex; gap: 1rem; font-size: var(--font-size-small); font-weight: var(--font-weight-semibold);">
+                            <span style="color: #3b82f6;">
+                                Programados:
+                                <span id="counter-programado">
+                                    0
+                                </span>
+                            </span>
+                            <span style="color: #ef4444;">
+                                Vencidos:
+                                <span id="counter-vencido">
+                                    0
+                                </span>
+                            </span>
+                            <span style="color: #10b981;">
+                                Realizados:
+                                <span id="counter-realizado">
+                                    0
+                                </span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <!-- Calendar Grid -->
+                <div class="glass-panel" style="padding: 1.5rem;">
+                    <div class="calendar-grid" id="calendar-grid"
+                        style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.5rem;">
+                        <!-- Headers and days injected by JS -->
+                    </div>
+                </div>
+            </div>
+            <!-- VIEW: PLANES SELECTION (New Entry Point) -->
+            <div id="view-planes-selection" class="view-section" style="display: none;">
+                <div style="text-align: center; margin-bottom: 3rem; animation: fadeIn 0.5s ease;">
+                    <h1
+                        style="font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem; background: linear-gradient(to right, #fff, #94a3b8); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">
+                        Gestión de Mantenimiento
+                    </h1>
+                    <p style="color: var(--text-muted);">
+                        Seleccione el tipo de operación para continuar
+                    </p>
+                </div>
+                <div
+                    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; width: 100%; margin: 0 auto;">
+                    <!-- Card Propio -->
+                    <div class="glass-panel selection-card" onclick="PlanesController.selectMode('PROPIO')"
+                        style="padding: 3rem; cursor: pointer; transition: all 0.3s ease; border: 1px solid var(--glass-border); position: relative; overflow: hidden;">
+                        <div
+                            style="position: absolute; top: 0; left: 0; width: 100%; height: 5px; background: var(--primary);">
+                        </div>
+                        <div
+                            style="display: flex; flex-direction: column; align-items: center; gap: 1.5rem; text-align: center;">
+                            <div
+                                style="width: 80px; height: 80px; background: rgba(59, 130, 246, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                                <i data-lucide="wrench" style="width: 40px; height: 40px; color: var(--primary);">
+                                </i>
+                            </div>
+                            <div>
+                                <h2 style="font-size: 1.5rem; font-weight: 600; margin-bottom: 0.5rem;">
+                                    Mantenimiento Propio
+                                </h2>
+                                <p style="color: var(--text-muted); font-size: 0.9rem; line-height: 1.6;">
+                                    Gestión de planes y asignaciones para el equipo técnico interno (Mecánicos,
+                                    Eléctricos, Soldadores).
+                                </p>
+                            </div>
+                            <span
+                                style="color: var(--primary); font-size: 0.9rem; font-weight: 500; display: flex; align-items: center; gap: 0.5rem; margin-top: 1rem;">
+                                Ingresar
+                                <i data-lucide="arrow-right" style="width: 16px;">
+                                </i>
+                            </span>
+                        </div>
+                    </div>
+                    <!-- Card Contratistas -->
+                    <div class="glass-panel selection-card" onclick="PlanesController.selectMode('CONTRATISTA')"
+                        style="padding: 3rem; cursor: pointer; transition: all 0.3s ease; border: 1px solid var(--glass-border); position: relative; overflow: hidden;">
+                        <div
+                            style="position: absolute; top: 0; left: 0; width: 100%; height: 5px; background: var(--accent);">
+                        </div>
+                        <div
+                            style="display: flex; flex-direction: column; align-items: center; gap: 1.5rem; text-align: center;">
+                            <div
+                                style="width: 80px; height: 80px; background: rgba(245, 158, 11, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                                <i data-lucide="briefcase" style="width: 40px; height: 40px; color: var(--accent);">
+                                </i>
+                            </div>
+                            <div>
+                                <h2 style="font-size: 1.5rem; font-weight: 600; margin-bottom: 0.5rem;">
+                                    Contratistas
+                                </h2>
+                                <p style="color: var(--text-muted); font-size: 0.9rem; line-height: 1.6;">
+                                    Seguimiento de servicios externos, órdenes de servicio y ejecución por terceros.
+                                </p>
+                            </div>
+                            <span
+                                style="color: var(--accent); font-size: 0.9rem; font-weight: 500; display: flex; align-items: center; gap: 0.5rem; margin-top: 1rem;">
+                                Ingresar
+                                <i data-lucide="arrow-right" style="width: 16px;">
+                                </i>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- End view-planes-selection -->
+            <div id="view-planes" class="view-section" style="display: none;">
+                <div
+                    style="display: flex; justify-content: center; align-items: center; margin-bottom: 1.5rem; position: relative;">
+                    <!-- Back Button Absolute Left -->
+                    <div style="position: absolute; left: 0;">
+                        <button class="btn-icon" onclick="PlanesController.returnToSelection()"
+                            style="background: rgba(255,255,255,0.05);">
+                            <i data-lucide="arrow-left">
+                            </i>
+                        </button>
+                    </div>
+                </div>
+                <!-- Centered Title -->
+                <div style="text-align: center;">
+                    <h1 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 0.2rem;" id="planes-title">
+                        Consulta Planes de Mtto.
+                    </h1>
+                    <p style="color: var(--text-muted); font-size: 0.9rem;">
+                        Gestiona y visualiza el estado de los mantenimientos
+                    </p>
+                </div>
+                <!-- Actions Absolute Right -->
+                <div style="display: flex; gap: 0.5rem; position: absolute; right: 0;">
+                    <button class="btn btn-primary" id="btn-nuevo-plan" onclick="PlanesController.loadForm()">
+                        <i data-lucide="plus">
+                        </i>
+                        Agregar Labor
+                    </button>
+                </div>
+                <!-- TABS -->
+                <div
+                    style="display: flex; gap: 1rem; margin-bottom: 1rem; border-bottom: 1px solid var(--glass-border);">
+                    <button id="tab-pendientes" class="tab-btn active"
+                        onclick="PlanesController.switchTab('PENDIENTE')">
+                        Programados / En Curso
+                    </button>
+                    <button id="tab-historico" class="tab-btn" onclick="PlanesController.switchTab('HISTORICO')">
+                        Histórico (Realizados)
+                    </button>
+                </div>
+                <div class="glass-panel" style="padding: 0; overflow: hidden;">
+                    <!-- Toolbar (Search, Filter) could go here -->
+                    <div
+                        style="padding: 1rem; border-bottom: 1px solid var(--glass-border); display: flex; justify-content: space-between; align-items: center; gap: 1rem;">
+                        <input type="text" placeholder="Buscar plan, equipo..."
+                            style="background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); padding: 0.5rem 1rem; border-radius: 0.5rem; color: white; outline: none; width: 300px;">
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button class="btn"
+                                style="background: rgba(16, 185, 129, 0.1); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.2);"
+                                onclick="PlanesController.exportToExcel()">
+                                <i data-lucide="file-spreadsheet" style="width: 1.1rem; margin-right: 0.5rem;">
+                                </i>
+                                EXCEL
+                            </button>
+                            <button class="btn"
+                                style="background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2);"
+                                onclick="PlanesController.exportToPDF()">
+                                <i data-lucide="file-text" style="width: 1.1rem; margin-right: 0.5rem;">
+                                </i>
+                                PDF
+                            </button>
+                            <button class="btn" id="btn-delete-selected" onclick="PlanesController.deleteSelected()"
+                                style="display: none; background: rgba(239, 68, 68, 0.2); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.4); font-size: 0.85rem;">
+                                <i data-lucide="trash" size="16">
+                                </i>
+                                Eliminar (0)
+                            </button>
+                            <button class="btn" onclick="PlanesController.clearAllPlanes()"
+                                style="background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); font-size: 0.85rem;">
+                                <i data-lucide="trash-2" size="16">
+                                </i>
+                                Limpiar Todo
+                            </button>
+                            <!-- Removed Auditoria Button from here (Moved to Sidebar) -->
+                            <!--
+                  <!-- Removed Auditoria Button from here (Moved to Sidebar) -->
+                            <!--
+                  <button class="btn" onclick="PlanesController.startAuditMode()"                        style="background: rgba(99, 102, 241, 0.15); color: #6366f1; border: 1px solid rgba(99, 102, 241, 0.3); font-size: 0.85rem;">
+                    <i data-lucide="eye" size="16">
+                    </i>
+                    Auditoría
+                  </button>
+                  -->
+                            -->
+                        </div>
+                    </div>
+                    <div style="overflow-x: auto;">
+                        <table class="modern-table">
+                            <thead>
+                                <tr style="text-align: center;">
+                                    <th style="width: 40px; text-align: center;">
+                                        <input type="checkbox" id="check-all-planes"
+                                            onchange="PlanesController.toggleSelectAll(this)" style="cursor: pointer;">
+                                    </th>
+                                    <th>
+                                        Fecha Prog.
+                                    </th>
+                                    <th>
+                                        Descripción
+                                    </th>
+                                    <th>
+                                        Equipo
+                                    </th>
+                                    <th>
+                                        Ubicación
+                                    </th>
+                                    <th>
+                                        Estado
+                                    </th>
+                                    <th>
+                                        Duración
+                                    </th>
+                                    <!--
+                      <th>
+                        Sec.
+                      </th>
+                      Removed by request -->
+                                    <th>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody id="planes-table-body">
+                                <!-- JS Injected Content -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <!-- VIEW: PLANES AUDIT -->
+            <div id="view-planes-audit" class="view-section" style="display: none;">
+                <!-- Content injected by JS -->
+            </div>
+            <!-- VIEW: NUEVO PLAN (Form) -->
+            <div id="view-nuevo-plan" class="view-section" style="display: none;">
+                <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem;">
+                    <button class="btn-icon" onclick="navigate('planes')"
+                        style="background: rgba(255,255,255,0.1); padding: 0.5rem; border-radius: 50%;">
+                        <i data-lucide="arrow-left">
+                        </i>
+                    </button>
+                    <div>
+                        <h1 id="form-title" style="font-size: 1.5rem; font-weight: 700;">
+                            Nuevo Plan de Mantenimiento
+                        </h1>
+                        <p style="color: var(--text-muted);">
+                            Registro desde Campo
+                        </p>
+                    </div>
+                </div>
+                <div class="glass-panel" style="width: 100%; margin: 0 auto;">
+                    <form id="form-nuevo-plan" onsubmit="event.preventDefault(); PlanesController.handleSave();">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+                            <!-- Campo: Secuencia -->
+                            <div class="form-group" id="wrapper-secuencia">
+                                <label
+                                    style="display: block; color: var(--text-muted); margin-bottom: 0.5rem; font-size: 0.9rem;">
+                                    SECUENCIA
+                                </label>
+                                <input type="number" id="field-secuencia" value="1" readonly
+                                    style="width: 100%; padding: 0.8rem; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); color: var(--text-muted); border-radius: 0.5rem; cursor: not-allowed; font-weight: bold; text-align: center;">
+                            </div>
+                            <!-- Campo: Equipo -->
+                            <div class="form-group">
+                                <label
+                                    style="display: block; color: var(--text-muted); margin-bottom: 0.5rem; font-size: 0.9rem;">
+                                    EQUIPO
+                                </label>
+                                <input list="equipos-list" id="field-equipo" required
+                                    placeholder="Escriba código o nombre..."
+                                    style="width: 100%; padding: 0.8rem; background: var(--bg-dark); border: 1px solid var(--glass-border); color: var(--text-main); border-radius: 0.5rem;">
+                                <datalist id="equipos-list">
+                                    <!-- Options injected by JS -->
+                                </datalist>
+                                <datalist id="materiales-list">
+                                    <!-- Populated by JS -->
+                                </datalist>
+                            </div>
+                        </div>
+                        <!-- Campo: Centro de Costos -->
+                        <div class="form-group">
+                            <label
+                                style="display: block; color: var(--text-muted); margin-bottom: 0.5rem; font-size: 0.9rem;">
+                                CENTRO DE COSTOS (CECO)
+                            </label>
+                            <input type="text" id="field-ceco" readonly
+                                style="width: 100%; padding: 0.8rem; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); color: var(--text-muted); border-radius: 0.5rem; cursor: not-allowed;">
+                        </div>
+                        <!-- Campo: Fecha Programada -->
+                        <div class="form-group">
+                            <label
+                                style="display: block; color: var(--text-muted); margin-bottom: 0.5rem; font-size: 0.9rem;">
+                                FECHA PROGRAMADA
+                            </label>
+                            <input type="date" id="field-fecha-programada" required
+                                style="width: 100%; padding: 0.8rem; background: var(--bg-dark); border: 1px solid var(--glass-border); color: var(--text-main); border-radius: 0.5rem; font-family: inherit;">
+                        </div>
+                        <!-- Campo: Tipo Mantenimiento -->
+                        <div class="form-group">
+                            <label
+                                style="display: block; color: var(--text-muted); margin-bottom: 0.5rem; font-size: 0.9rem;">
+                                TIPO MANTENIMIENTO
+                            </label>
+                            <select id="field-tipo" required
+                                style="width: 100%; padding: 0.8rem; background: var(--bg-dark); border: 1px solid var(--glass-border); color: var(--text-main); border-radius: 0.5rem;">
+                                <option value="998 - MANTENIMIENTO PREVENTIVO">
+                                    998 - MANTENIMIENTO PREVENTIVO
+                                </option>
+                                <option value="999 - MANTENIMIENTO CORRECTIVO">
+                                    999 - MANTENIMIENTO CORRECTIVO
+                                </option>
+                            </select>
+                        </div>
+                        <!-- Campo: Descripción -->
+                        <div class="form-group" id="wrapper-descripcion" style="grid-column: span 2;">
+                            <label
+                                style="display: block; color: var(--text-muted); margin-bottom: 0.5rem; font-size: 0.9rem;">
+                                DESCRIPCIÓN DEL TRABAJO
+                            </label>
+                            <input type="text" id="field-descripcion" list="desc-suggestions" required
+                                placeholder="Seleccione o escriba..."
+                                oninput="PlanesController.handleDescriptionChange(this)"
+                                style="width: 100%; padding: 0.8rem; background: var(--bg-dark); border: 1px solid var(--glass-border); color: var(--text-main); border-radius: 0.5rem;">
+                            <datalist id="desc-suggestions">
+                                <option value="Mantenimiento 250 Horas">
+                                <option value="Mantenimiento 500 Horas">
+                                <option value="Mantenimiento 750 Horas">
+                                <option value="Mantenimiento 1000 Horas">
+                            </datalist>
+                        </div>
+                        <!-- Campo: Ubicación -->
+                        <div class="form-group">
+                            <label
+                                style="display: block; color: var(--text-muted); margin-bottom: 0.5rem; font-size: 0.9rem;">
+                                UBICACIÓN
+                            </label>
+                            <input type="text" id="field-ubicacion" list="ubicaciones-list"
+                                placeholder="Seleccione o escriba..."
+                                style="width: 100%; padding: 0.8rem; background: var(--bg-dark); border: 1px solid var(--glass-border); color: var(--text-main); border-radius: 0.5rem;">
+                            <datalist id="ubicaciones-list">
+                                <option value="Campamento La Luisa">
+                                <option value="Campamento El Durán">
+                            </datalist>
+                        </div>
+                        <!-- Campo: Duración Estimada -->
+                        <div class="form-group">
+                            <label id="label-duracion"
+                                style="display: block; color: var(--text-muted); margin-bottom: 0.5rem; font-size: 0.9rem;">
+                                DURACIÓN ESTIMADA DEL PLAN (HH:MM)
+                            </label>
+                            <input type="text" id="field-duracion" value="00:00" placeholder="00:00"
+                                style="width: 100%; padding: 0.8rem; background: var(--bg-dark); border: 1px solid var(--glass-border); color: var(--accent-color); border-radius: 0.5rem; font-weight: bold;">
+                        </div>
+                        <!-- Campo: Horómetro de Cierre (NUEVO) -->
+                        <div class="form-group">
+                            <label
+                                style="display: block; color: var(--text-muted); margin-bottom: 0.5rem; font-size: 0.9rem;">
+                                HORAS OPERATIVAS TOTALES (Al momento del Mtto)
+                            </label>
+                            <input type="number" id="field-horometro-cierre" placeholder="Ej: 20150"
+                                style="width: 100%; padding: 0.8rem; background: var(--bg-dark); border: 1px solid var(--glass-border); color: #10b981; border-radius: 0.5rem; font-weight: bold;">
+                            <small
+                                style="display: block; font-size: 0.7rem; color: var(--text-muted); margin-top: 4px;">
+                                Indica qué marcaban las horas del equipo ese día.
+                            </small>
+                        </div>
+                </div>
+                <!-- SECCIÓN: ACTIVIDADES -->
+                <div id="wrapper-actividades" class="glass-panel"
+                    style="margin-bottom: 1.5rem; background: rgba(0,0,0,0.2);">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h3 style="font-size: 1rem; color: var(--secondary);">
+                            ACTIVIDADES DEL PLAN
+                        </h3>
+                        <button type="button" class="btn-icon" onclick="PlanesController.addActivityRow()"
+                            style="background: var(--secondary); color: white; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;">
+                            <i data-lucide="plus" size="16">
+                            </i>
+                        </button>
+                    </div>
+                    <table class="modern-table" style="margin-top: 0;">
+                        <thead>
+                            <tr>
+                                <th style="width: 75%;">
+                                    Descripción
+                                </th>
+                                <th style="width: 20%;" id="th-horas">
+                                    Horas
+                                </th>
+                                <th style="width: 40px;">
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-actividades">
+                            <!-- Rows added by JS -->
+                        </tbody>
+                    </table>
+                </div>
+                <!-- SECCIÓN: FECHAS CONTRATISTA (NUEVO) -->
+                <div id="wrapper-fechas-contratista" class="glass-panel"
+                    style="margin-bottom: 1.5rem; background: rgba(0,0,0,0.2); display: none;">
+                    <h3 style="font-size: 1rem; color: var(--secondary); margin-bottom: 1rem;">
+                        TIEMPOS DEejecución (CONTRATISTA)
+                    </h3>
+                    <div
+                        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2.5rem; padding: 1rem 0;">
+                        <div class="form-group">
+                            <label
+                                style="display: block; color: var(--text-muted); margin-bottom: 0.5rem; font-size: 0.9rem;">
+                                FECHA SALIDA EQUIPO
+                            </label>
+                            <input type="date" id="field-fecha-salida" class="input-dark" style="width: 100%;"
+                                onchange="PlanesController.calculateContractorDays()">
+                        </div>
+                        <div class="form-group">
+                            <label
+                                style="display: block; color: var(--text-muted); margin-bottom: 0.5rem; font-size: 0.9rem;">
+                                FECHA ENTREGA EQUIPO
+                            </label>
+                            <input type="date" id="field-fecha-entrega" class="input-dark" style="width: 100%;"
+                                onchange="PlanesController.calculateContractorDays()">
+                        </div>
+                        <div class="form-group">
+                            <label
+                                style="display: block; color: var(--text-muted); margin-bottom: 0.5rem; font-size: 0.9rem;">
+                                TIEMPO DE ENTREGA (DÍAS)
+                            </label>
+                            <input type="text" id="field-dias-contratista" readonly value="0" class="input-dark"
+                                style="width: 100%; font-weight: bold; color: var(--accent-light); text-align: center;">
+                        </div>
+                    </div>
+                </div>
+                <!-- SECCIÓN: INTERVENCIÓN EXTERNA (OPCIONAL) -->
+                <div class="glass-panel" style="margin-bottom: 1.5rem; background: rgba(0,0,0,0.2);">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h3 style="font-size: 1rem; color: var(--secondary);">
+                            CONTRATISTA
+                        </h3>
+                        <label class="switch">
+                            <input type="checkbox" id="check-contratista"
+                                onchange="document.getElementById('wrapper-contratista').style.display = this.checked ? 'block' : 'none'; PlanesController.calculateTotalPlan();">
+                            <span class="slider round">
+                            </span>
+                        </label>
+                    </div>
+                    <div id="wrapper-contratista"
+                        style="display: none; border-top: 1px solid var(--glass-border); padding-top: 1rem;">
+                        <div
+                            style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.5rem; padding-bottom: 1rem;">
+                            <div class="form-group">
+                                <label
+                                    style="display: block; color: var(--text-muted); margin-bottom: 0.5rem; font-size: 0.8rem;">
+                                    NOMBRE DEL CONTRATISTA / EMPRESA
+                                </label>
+                                <input type="text" id="field-contratista-nombre" placeholder="Ej: Talleres Unidos"
+                                    class="input-dark" style="width: 100%;">
+                            </div>
+                            <div class="form-group">
+                                <label
+                                    style="display: block; color: var(--text-muted); margin-bottom: 0.5rem; font-size: 0.8rem;">
+                                    COSTO
+                                </label>
+                                <input type="number" id="field-contratista-costo" value="0"
+                                    oninput="PlanesController.calculateTotalPlan()" class="input-dark"
+                                    style="width: 100%; color: var(--accent-color); font-weight: bold;">
+                            </div>
+                            <div class="form-group">
+                                <label
+                                    style="display: block; color: var(--text-muted); margin-bottom: 0.5rem; font-size: 0.8rem;">
+                                    TIPO DE GASTO
+                                </label>
+                                <select id="field-contratista-tipo-gasto" class="input-dark"
+                                    style="width: 100%; cursor: pointer;">
+                                    <option value="OPEX">
+                                        OPEX (Operativo)
+                                    </option>
+                                    <option value="CAPEX">
+                                        CAPEX (Inversión)
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+                        <div style="margin-top: 1rem;">
+                            <button type="button" class="btn" onclick="PlanesController.uploadCotizacion()"
+                                style="width: 100%; background: rgba(59, 130, 246, 0.1); color: #3b82f6; border: 1px dashed rgba(59, 130, 246, 0.3); padding: 0.8rem; border-radius: 0.5rem; transition: background 0.2s;">
+                                <i data-lucide="upload-cloud"
+                                    style="width: 18px; margin-right: 0.5rem; vertical-align: middle;">
+                                </i>
+                                Cargar Cotizaciones del Trabajo (PDF/IMG)
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <!-- SECCIÓN: MATERIALES -->
+                <div class="glass-panel" id="wrapper-materiales"
+                    style="margin-bottom: 1.5rem; background: rgba(0,0,0,0.2);">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h3 style="font-size: 1rem; color: var(--secondary);">
+                            Materiales
+                        </h3>
+                        <div style="display: flex; gap: 0.5rem; align-items: center;">
+                            <button type="button" class="btn" onclick="MaterialesController.openModal()"
+                                style="padding: 0.3rem 0.6rem; font-size: 0.75rem; background: rgba(14, 165, 233, 0.1); color: var(--accent-light); border: 1px solid rgba(14, 165, 233, 0.2);">
+                                <i data-lucide="plus-circle" size="14">
+                                </i>
+                                Nuevo Material
+                            </button>
+                            <button type="button" class="btn-icon" onclick="PlanesController.addMaterialRow()"
+                                style="background: var(--secondary); color: white; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;">
+                                <i data-lucide="plus" size="16">
+                                </i>
+                            </button>
+                        </div>
+                    </div>
+                    <table class="modern-table" style="width: 100%; font-size: 0.9rem;">
+                        <thead>
+                            <tr>
+                                <th style="width: 10%;">
+                                    Código
+                                </th>
+                                <th style="width: 40%;">
+                                    Descripción
+                                </th>
+                                <th style="width: 8%;">
+                                    Cant.
+                                </th>
+                                <th style="width: 18%;">
+                                    Valor U.
+                                </th>
+                                <th style="width: 18%;">
+                                    Subtotal
+                                </th>
+                                <th style="width: 40px;">
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-materiales">
+                            <!-- Dynamic Rows -->
+                        </tbody>
+                        <tfoot>
+                            <tr style="border-top: 2px solid var(--glass-border);">
+                                <td colspan="4" style="text-align: right; font-weight: bold; padding-top: 1rem;">
+                                    TOTAL ESTIMADO:
+                                </td>
+                                <td style="padding-top: 1rem;">
+                                    <input type="text" id="total-estimado" readonly value="$0"
+                                        style="width: 100%; background: transparent; border: none; color: var(--accent-color); font-weight: bold; text-align: right;">
+                                </td>
+                                <td>
+                                </td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                    <button type="button" class="btn-secondary" onclick="PlanesController.addMaterialRow()"
+                        style="margin-top: 0.5rem; width: 100%;">
+                        <i data-lucide="plus" size="16">
+                        </i>
+                        Agregar Material
+                    </button>
+                </div>
+                <div
+                    style="border-top: 1px solid var(--glass-border); padding-top: 1.5rem; margin-top: 1.5rem; display: flex; justify-content: flex-end; gap: 1rem;">
+                    <button type="button" class="btn" onclick="navigate('planes')"
+                        style="background: transparent; border: 1px solid var(--glass-border); color: white;">
+                        Cancelar
+                    </button>
+                    <button type="button" id="btn-delete-plan" class="btn"
+                        onclick="PlanesController.deleteCurrentPlan()"
+                        style="background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; color: #ef4444; display: none;">
+                        <i data-lucide="trash-2">
+                        </i>
+                        Eliminar
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i data-lucide="save">
+                        </i>
+                        Guardar Plan
+                    </button>
+                </div>
+                </form>
+            </div>
+            <!-- VIEW: DETALLE PLAN -->
+            <div id="view-detalle-plan" class="view-section" style="display: none;">
+                <div
+                    style="display: flex; justify-content: center; align-items: center; margin-bottom: 1.5rem; position: relative;">
+                    <!-- Back Button (Absolute Left) -->
+                    <div style="position: absolute; left: 0;">
+                        <button class="btn-icon" onclick="navigate('planes')"
+                            style="background: rgba(255,255,255,0.1); width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                            <i data-lucide="arrow-left" size="20">
+                            </i>
+                        </button>
+                    </div>
+                    <!-- Centered Title -->
+                    <div style="text-align: center;">
+                        <h1 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 0.2rem;" id="detail-title">
+                            Plan #000
+                        </h1>
+                        <p style="color: var(--text-muted); font-size: 0.9rem;" id="detail-subtitle">
+                            Detalles del mantenimiento
+                        </p>
+                    </div>
+                    <!-- Actions (Absolute Right) -->
+                    <div style="position: absolute; right: 0;" id="detail-actions">
+                        <!-- Helper buttons injected by JS -->
+                    </div>
+                </div>
+                <div class="glass-panel" style="margin-bottom: 1.5rem;">
+                    <div
+                        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 1.5rem;">
+                        <div style="text-align: center;">
+                            <label style="color: var(--text-muted); font-size: 0.8rem; display: block;">
+                                ESTADO
+                            </label>
+                            <div id="detail-status" style="margin-top: 0.5rem; display: flex; justify-content: center;">
+                            </div>
+                        </div>
+                        <div style="text-align: center;">
+                            <label style="color: var(--text-muted); font-size: 0.8rem; display: block;">
+                                EQUIPO
+                            </label>
+                            <div id="detail-equipo" style="font-size: 1.1rem; font-weight: 600;">
+                                -
+                            </div>
+                        </div>
+                        <div style="text-align: center;">
+                            <label style="color: var(--text-muted); font-size: 0.8rem; display: block;">
+                                UBICACIÓN
+                            </label>
+                            <div id="detail-ubicacion" style="font-size: 1rem;">
+                                -
+                            </div>
+                        </div>
+                        <div style="text-align: center;">
+                            <label style="color: var(--text-muted); font-size: 0.8rem; display: block;">
+                                FECHA PROG.
+                            </label>
+                            <div id="detail-fecha" style="font-size: 1rem;">
+                                -
+                            </div>
+                        </div>
+                        <div style="text-align: center;">
+                            <label style="color: var(--text-muted); font-size: 0.8rem; display: block;">
+                                DURACIÓN EST.
+                            </label>
+                            <div id="detail-duracion" style="font-size: 1rem;">
+                                -
+                            </div>
+                        </div>
+                    </div>
+                    <div style="margin-bottom: 1rem;">
+                        <label
+                            style="color: var(--text-muted); font-size: 0.8rem; display: block; margin-bottom: 0.5rem; text-align: center;">
+                            DESCRIPCIÓN
+                        </label>
+                        <p id="detail-descripcion"
+                            style="background: rgba(0,0,0,0.2); padding: 1rem; border-radius: 0.5rem; line-height: 1.5; text-align: center;">
+                            -
+                        </p>
+                    </div>
+                    <!-- ACTIVIDADES -->
+                    <h3
+                        style="font-size: 1rem; color: var(--secondary); margin-top: 1.5rem; margin-bottom: 0.5rem; border-bottom: 1px solid var(--glass-border); padding-bottom: 0.5rem; text-align: center;">
+                        ACTIVIDADES
+                    </h3>
+                    <table class="modern-table" style="width: 100%; margin-bottom: 1.5rem;">
+                        <thead>
+                            <tr>
+                                <th style="text-align: center;">
+                                    Descripción
+                                </th>
+                                <th style="width: 100px; text-align: center;">
+                                    Tiempo
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody id="detail-tbody-actividades">
+                        </tbody>
+                    </table>
+                    <!-- MATERIALES -->
+                    <h3
+                        style="font-size: 1rem; color: var(--secondary); margin-top: 1.5rem; margin-bottom: 0.5rem; border-bottom: 1px solid var(--glass-border); padding-bottom: 0.5rem; text-align: center; text-transform: uppercase;">
+                        MATERIALES
+                    </h3>
+                    <table class="modern-table" style="width: 100%;">
+                        <thead>
+                            <tr>
+                                <th style="text-align: center;">
+                                    Código
+                                </th>
+                                <th style="text-align: center;">
+                                    Descripción
+                                </th>
+                                <th style="text-align: right; padding-right: 2rem;">
+                                    Cant.
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody id="detail-tbody-materiales">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <!-- VIEW: BOLETAS -->
+            <div id="view-boletas" class="view-section" style="display: none;">
+                <div id="boletas-list-view">
+                    <!-- Encabezado compacto -->
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 1.5rem;">
+                        <div>
+                            <h1 style="font-size: 1.6rem; font-weight: 700; margin: 0; color: var(--text-main);">
+                                Boletas emitidas
+                            </h1>
+                            <p style="color: var(--text-muted); margin: 4px 0 0; font-size: 0.9rem;">
+                                Trazabilidad de requisiciones · imprimir, correo o WhatsApp
+                            </p>
+                        </div>
+                        <button class="btn-primary" onclick="BoletasController.renderAplicacionForm()"
+                            style="background: var(--primary); border: 1px solid var(--primary-strong); color: #fff; border-radius: 8px; display: inline-flex; align-items: center; gap: 8px; padding: 0.7rem 1.2rem; font-size: 0.9rem; font-weight: 700; cursor: pointer; white-space: nowrap;">
+                            <i data-lucide="plus" style="width: 18px;"></i>
+                            Nueva boleta
+                        </button>
+                    </div>
+
+                    <!-- Indicadores -->
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 1.5rem;">
+                        <div class="glass-panel" style="padding: 0.9rem 1.1rem;">
+                            <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">Total emitidas</div>
+                            <div id="kpi-bol-total" style="font-size: 1.6rem; font-weight: 800; color: var(--text-main); margin-top: 2px;">0</div>
+                        </div>
+                        <div class="glass-panel" style="padding: 0.9rem 1.1rem;">
+                            <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">Este mes</div>
+                            <div id="kpi-bol-month" style="font-size: 1.6rem; font-weight: 800; color: var(--text-main); margin-top: 2px;">0</div>
+                        </div>
+                        <div class="glass-panel" style="padding: 0.9rem 1.1rem;">
+                            <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">Boletas</div>
+                            <div id="kpi-bol-req" style="font-size: 1.6rem; font-weight: 800; color: var(--text-main); margin-top: 2px;">0</div>
+                        </div>
+                        <div class="glass-panel" style="padding: 0.9rem 1.1rem;">
+                            <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">Aplicaciones</div>
+                            <div id="kpi-bol-app" style="font-size: 1.6rem; font-weight: 800; color: var(--text-main); margin-top: 2px;">0</div>
+                        </div>
+                    </div>
+
+                    <!-- Barra de herramientas -->
+                    <div class="glass-panel" style="margin-bottom: 1.25rem; padding: 0.7rem 1rem; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem;">
+                        <div style="display: inline-flex; background: var(--primary-soft); padding: 4px; border-radius: 10px; gap: 4px;">
+                            <button id="tab-all" class="tab-btn active"
+                                onclick="BoletasController.setFilter('ALL', 'tab-all')"
+                                style="padding: 7px 16px; border-radius: 7px; border: none; background: var(--primary); color: #fff; cursor: pointer; font-weight: 700; font-size: 0.82rem;">
+                                Todas
+                            </button>
+                            <button id="tab-req" class="tab-btn"
+                                onclick="BoletasController.setFilter('REQUISICION', 'tab-req')"
+                                style="padding: 7px 16px; border-radius: 7px; border: none; background: transparent; color: var(--text-muted); cursor: pointer; font-weight: 700; font-size: 0.82rem;">
+                                Boletas
+                            </button>
+                            <button id="tab-app" class="tab-btn"
+                                onclick="BoletasController.setFilter('APLICACION', 'tab-app')"
+                                style="padding: 7px 16px; border-radius: 7px; border: none; background: transparent; color: var(--text-muted); cursor: pointer; font-weight: 700; font-size: 0.82rem;">
+                                Aplicaciones
+                            </button>
+                        </div>
+                        <div style="display: inline-flex; align-items: center; gap: 8px; flex: 1; justify-content: flex-end; min-width: 220px;">
+                            <div style="position: relative; flex: 1; max-width: 320px;">
+                                <i data-lucide="search"
+                                    style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 16px; color: var(--text-muted);"></i>
+                                <input type="text" placeholder="Buscar ID o responsable..."
+                                    onkeyup="BoletasController.handleSearch(this.value)"
+                                    style="width: 100%; box-sizing: border-box; padding: 9px 11px 9px 36px; background: var(--bg-panel); border: 1px solid var(--glass-border); border-radius: 8px; color: var(--text-main); font-size: 0.88rem; outline: none;">
+                            </div>
+                            <button onclick="BoletasController.exportCSV()" title="Exportar a CSV"
+                                style="border: 1px solid var(--glass-border); background: transparent; color: var(--text-muted); border-radius: 8px; padding: 9px 12px; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; white-space: nowrap;">
+                                <i data-lucide="download" style="width: 16px;"></i> Exportar
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Tabla -->
+                    <div class="glass-panel" style="padding: 0; overflow: hidden;">
+                        <div style="overflow-x: auto;">
+                            <table class="modern-table" style="width: 100%; min-width: 720px;">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 32%; text-align: left; padding-left: 16px;">Documento</th>
+                                        <th style="width: 13%; text-align: left;">Equipo</th>
+                                        <th style="width: 17%; text-align: left;">Responsable</th>
+                                        <th style="width: 9%; text-align: center;">Ítems</th>
+                                        <th style="width: 14%; text-align: left;">Estado</th>
+                                        <th style="width: 15%; text-align: right; padding-right: 16px;">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="boletas-table-body">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div id="boletas-form-container" style="display: none;">
+                </div>
+            </div>
+            <!-- VIEW: PROGRAMACION -->
+            <div id="view-programacion" class="view-section" style="display: none;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                    <div>
+                        <h1 style="font-size: 1.8rem; font-weight: 700;">
+                            Programación Diaria
+                        </h1>
+                        <p style="color: var(--text-muted);">
+                            Generar y enviar informe de actividades
+                        </p>
+                    </div>
+                </div>
+                <!-- Date Selector -->
+                <div class="glass-panel" style="padding: 1.5rem; margin-bottom: 1.5rem;">
+                    <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+                        <div style="flex: 1; min-width: 200px;">
+                            <label
+                                style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem;">
+                                📅 Seleccionar Fecha
+                            </label>
+                            <input type="date" id="programacion-date" onchange="ProgramacionController.onDateChange()"
+                                style="width: 100%; padding: 0.75rem; border-radius: 0.5rem; background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); color: white; font-size: 0.9rem;">
+                        </div>
+                        <div style="display: flex; gap: 0.5rem; align-items: flex-end;">
+                            <button class="btn" onclick="ProgramacionController.setQuickDate(0)"
+                                style="font-size: 0.85rem; padding: 0.75rem 1rem;">
+                                Hoy
+                            </button>
+                            <button class="btn btn-primary" onclick="ProgramacionController.setQuickDate(1)"
+                                style="font-size: 0.85rem; padding: 0.75rem 1rem;">
+                                Mañana
+                            </button>
+                            <button class="btn" onclick="ProgramacionController.setQuickDate(2)"
+                                style="font-size: 0.85rem; padding: 0.75rem 1rem;">
+                                Pasado Mañana
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <!-- Visual Preview -->
+                <div class="glass-panel visual-preview-container" style="max-height: 400px; overflow-y: auto;">
+                    <h2
+                        style="font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <i data-lucide="eye" style="width: 20px; height: 20px;">
+                        </i>
+                        Vista Previa
+                    </h2>
+                    <div id="programacion-preview">
+                        <!-- Preview content will be generated here -->
+                    </div>
+                </div>
+                <!-- Message Textarea -->
+                <div class="glass-panel" style="padding: 2rem;">
+                    <h2
+                        style="font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <i data-lucide="message-square" style="width: 20px; height: 20px;">
+                        </i>
+                        Mensaje para WhatsApp
+                    </h2>
+                    <textarea id="programacion-texto" class="notepad-textarea"
+                        style="height: 250px; font-family: monospace;"></textarea>
+                    <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                        <button class="btn" onclick="ProgramacionController.resetMessage()">
+                            <i data-lucide="rotate-ccw">
+                            </i>
+                            Regenerar
+                        </button>
+                        <button class="btn btn-primary" onclick="ProgramacionController.sendWhatsApp()">
+                            <i data-lucide="message-circle">
+                            </i>
+                            Enviar WhatsApp
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <!-- VIEW: EQUIPOS -->
+            <!-- VIEW: EQUIPOS -->
+            <div id="view-equipos" class="view-section" style="display: none;">
+                <div
+                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; position: relative;">
+                    <div>
+                        <h1 style="font-size: 1.5rem; font-weight: 700;">
+                            Maestro de Equipos
+                        </h1>
+                        <p style="color: var(--text-muted); font-size: 0.9rem;">
+                            Gestión de flota y maquinaria
+                        </p>
+                    </div>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <button class="btn btn-secondary" onclick="EquiposController.openHoursImportModal()"
+                            style="font-size: 0.8rem;" title="Importar horas operativas desde SimpleAgri">
+                            <i data-lucide="upload" style="width: 14px;">
+                            </i>
+                            Importar Horas
+                        </button>
+                        <button class="btn btn-primary" onclick="EquiposController.openModal()"
+                            style="font-size: 0.8rem;">
+                            <i data-lucide="plus" style="width: 14px;">
+                            </i>
+                            Nuevo
+                        </button>
+                        <input type="file" id="excel-upload" accept=".xlsx, .xls" style="display: none;"
+                            onchange="EquiposController.handleFile(this)">
+                        <input type="file" id="hours-upload" accept=".xlsx, .xls" style="display: none;"
+                            onchange="EquiposController.handleHoursFile(this)">
+                    </div>
+                </div>
+                <!-- MODAL: TARJETA INFORMATIVA DE EQUIPO -->
+                <div id="modal-info-equipo" class="modal" style="display: none;">
+                    <div class="modal-content"
+                        style="max-width: 500px; padding: 0; overflow: hidden; border-radius: 12px;">
+                        <div id="info-card-header"
+                            style="background: linear-gradient(135deg, var(--primary-main), #1d4ed8); padding: 1.5rem; color: white;">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                                <div>
+                                    <h2 id="info-eq-codigo"
+                                        style="font-size: 1.8rem; font-weight: 800; margin: 0; opacity: 0.9;">
+                                        -
+                                    </h2>
+                                    <p id="info-eq-descripcion"
+                                        style="margin: 0.2rem 0 0; font-size: 1.1rem; font-weight: 500;">
+                                        -
+                                    </p>
+                                </div>
+                                <button class="btn-icon" onclick="EquiposController.closeInfoModal()"
+                                    style="color: white; background: rgba(255,255,255,0.1); border: none; cursor: pointer;">
+                                    <i data-lucide="x" style="width: 20px;">
+                                    </i>
+                                </button>
+                            </div>
+                        </div>
+                        <div style="padding: 1.5rem; background: var(--bg-card, #1a1d21);">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem;">
+                                <div>
+                                    <label
+                                        style="display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.2rem;">
+                                        Ubicación
+                                    </label>
+                                    <div id="info-eq-ubicacion" style="font-weight: 600;">
+                                        -
+                                    </div>
+                                </div>
+                                <div>
+                                    <label
+                                        style="display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.2rem;">
+                                        Función Implemento
+                                    </label>
+                                    <div id="info-eq-funcion" style="font-weight: 600;">
+                                        -
+                                    </div>
+                                </div>
+                                <div>
+                                    <label
+                                        style="display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.2rem;">
+                                        Aforo Consumo (Gl/h)
+                                    </label>
+                                    <div id="info-eq-consumo" style="font-weight: 700; color: var(--primary-main);">
+                                        -
+                                    </div>
+                                </div>
+                                <div>
+                                    <label
+                                        style="display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.2rem;">
+                                        Aforo Caudal (L/s)
+                                    </label>
+                                    <div id="info-eq-caudal" style="font-weight: 700;">
+                                        -
+                                    </div>
+                                </div>
+                                <div>
+                                    <label
+                                        style="display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.2rem;">
+                                        Potencia (HP/Kw)
+                                    </label>
+                                    <div id="info-eq-potencia" style="font-weight: 600;">
+                                        -
+                                    </div>
+                                </div>
+                                <div>
+                                    <label
+                                        style="display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.2rem;">
+                                        Variador
+                                    </label>
+                                    <div id="info-eq-variador" style="font-weight: 600;">
+                                        -
+                                    </div>
+                                </div>
+                                <div style="grid-column: span 2;">
+                                    <label
+                                        style="display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.2rem;">
+                                        Horas Operativas
+                                    </label>
+                                    <div id="info-eq-horometro"
+                                        style="font-size: 1.2rem; font-weight: 800; color: #10b981;">
+                                        -
+                                    </div>
+                                </div>
+                                <div style="grid-column: span 2;">
+                                    <label
+                                        style="display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.2rem;">
+                                        Proveedor
+                                    </label>
+                                    <div id="info-eq-proveedor" style="font-weight: 600;">
+                                        -
+                                    </div>
+                                </div>
+                            </div>
+                            <div
+                                style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--glass-border); display: flex; justify-content: space-between; align-items: center;">
+                                <button class="btn" onclick="EquiposController.closeInfoModal()"
+                                    style="background: rgba(255,255,255,0.05);">
+                                    Cerrar
+                                </button>
+                                <button id="btn-programar-mtto" class="btn btn-primary"
+                                    style="background: #10b981; border: none; display: none;">
+                                    <i data-lucide="calendar-plus" style="width: 16px; margin-right: 0.5rem;">
+                                    </i>
+                                    Programar Mantenimiento
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="glass-panel" style="padding: 0; overflow: hidden;">
+                    <div
+                        style="padding: 1rem; border-bottom: 1px solid var(--glass-border); display: flex; gap: 1rem; align-items: center;">
+                        <select id="filter-equipo-tipo"
+                            onchange="EquiposController.filterTable(document.getElementById('search-equipo').value)"
+                            style="background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); padding: 0.5rem; border-radius: 0.5rem; color: white; outline: none; min-width: 150px;">
+                            <option value="TODOS">
+                                ⚡ Todos los Activos
+                            </option>
+                            <option value="DIESEL">
+                                ⛽ Solo Diesel
+                            </option>
+                            <option value="ELECTRICO">
+                                🔌 Eléctricos / Otros
+                            </option>
+                        </select>
+                        <input type="text" id="search-equipo"
+                            placeholder="Buscar por código, descripción o ubicación..."
+                            onkeyup="EquiposController.filterTable(this.value)"
+                            style="background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); padding: 0.5rem 1rem; border-radius: 0.5rem; color: white; outline: none; width: 100%; max-width: 400px;">
+                    </div>
+                    <div style="max-height: 70vh; overflow: auto;">
+                        <table class="modern-table" style="min-width: 1200px;">
+                            <thead>
+                                <tr>
+                                    <th>
+                                        Equipo
+                                    </th>
+                                    <th>
+                                        Descripción Equipo
+                                    </th>
+                                    <th>
+                                        Ubicación
+                                    </th>
+                                    <th>
+                                        Función Implemento
+                                    </th>
+                                    <th>
+                                        Aforo Caudal (L/s)
+                                    </th>
+                                    <th>
+                                        Aforo Consumo (Gl/h)
+                                    </th>
+                                    <th style="color: inherit;">
+                                        Variador
+                                    </th>
+                                    <th>
+                                        Potencia (HP)
+                                    </th>
+                                    <th>
+                                        Potencia (Kw)
+                                    </th>
+                                    <th>
+                                        Horas Operativas
+                                    </th>
+                                    <th>
+                                        Proveedor
+                                    </th>
+                                    <th style="width: 80px;">
+                                        Acciones
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody id="equipos-table-body">
+                                <!-- JS Injected -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <!-- Footer Actions for Equipos -->
+                <div style="display: flex; gap: 1rem; margin-top: 1.5rem; justify-content: flex-end;">
+                    <button class="btn" onclick="EquiposController.triggerImport()"
+                        style="background: rgba(16, 185, 129, 0.1); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.2); font-size: 0.85rem;">
+                        <i data-lucide="upload-cloud" style="width: 16px; margin-right: 0.5rem;">
+                        </i>
+                        Importar Excel
+                    </button>
+                    <button class="btn" onclick="EquiposController.repairMetadata()"
+                        style="background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); font-size: 0.85rem;">
+                        <i data-lucide="wrench" style="width: 16px; margin-right: 0.5rem;">
+                        </i>
+                        Reparar / Limpiar Duplicados
+                    </button>
+                </div>
+            </div>
+            <div id="view-centro" class="view-section" style="display: none;">
+                <div style="margin-bottom: 1.5rem;">
+                    <h1 style="font-size: 1.8rem; font-weight: 800;">Mantenimiento Diésel</h1>
+                    <p style="color: var(--text-muted);">Panel · histórico · plantillas · generación de boletas — hub único de mantenimiento</p>
+                </div>
+                <div id="centro-content"><p style="color:var(--text-muted);">Cargando…</p></div>
+            </div>
+
+            <div id="view-actividades" class="view-section" style="display: none;">
+                <div style="margin-bottom: 1.5rem;">
+                    <h1 style="font-size: 1.6rem; font-weight: 700; margin: 0; color: var(--text-main);">Labores de campo</h1>
+                    <p style="color: var(--text-muted); margin: 4px 0 0; font-size: 0.9rem;">Recursos Hídricos · labores y actividades en campo</p>
+                </div>
+                <div id="actividades-content"><p style="color:var(--text-muted);">Cargando…</p></div>
+            </div>
+
+            <div id="view-capex" class="view-section" style="display: none;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                    <div>
+                        <h1 style="font-size: 1.8rem; font-weight: 700;">
+                            Gestión de Inversiones (CAPEX)
+                        </h1>
+                        <p style="color: var(--text-muted);">
+                            Administración y seguimiento de proyectos de inversión
+                        </p>
+                    </div>
+                    <div style="text-align: right;">
+                        <span
+                            style="display: block; font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">
+                            Total Inversión
+                        </span>
+                        <span id="capex-total-display"
+                            style="font-size: 1.5rem; font-weight: 800; color: var(--accent-color);">
+                            $ 0
+                        </span>
+                    </div>
+                </div>
+                <div class="glass-panel" style="padding: 0; overflow: hidden;">
+                    <div
+                        style="padding: 1rem; border-bottom: 1px solid var(--glass-border); display: flex; justify-content: flex-end;">
+                        <button class="btn btn-primary" onclick="CapexController.openModal()">
+                            <i data-lucide="plus-circle" size="18" style="margin-right: 0.5rem;">
+                            </i>
+                            Nueva Inversión
+                        </button>
+                    </div>
+                    <table class="modern-table">
+                        <thead>
+                            <tr>
+                                <th>
+                                    Descripción Proyecto
+                                </th>
+                                <th>
+                                    Proveedor
+                                </th>
+                                <th>
+                                    Fecha
+                                </th>
+                                <th>
+                                    Categoría
+                                </th>
+                                <th style="text-align: right;">
+                                    Valor
+                                </th>
+                                <th style="text-align: right;">
+                                    Acciones
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody id="capex-table-body">
+                            <!-- JS Injected -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <!-- VIEW: MATERIALES -->
+            <div id="view-materiales" class="view-section" style="display: none;">
+                <div
+                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; position: relative;">
+                    <div>
+                        <h1 style="font-size: 1.5rem; font-weight: 700;">
+                            Maestro de Materiales
+                        </h1>
+                        <p style="color: var(--text-muted); font-size: 0.9rem;">
+                            Gestiona el inventario de materiales y precios
+                        </p>
+                    </div>
+                    <div>
+                        <button class="btn btn-primary" onclick="MaterialesController.openModal()">
+                            <i data-lucide="plus">
+                            </i>
+                            Nuevo Material
+                        </button>
+                    </div>
+                </div>
+                <div class="glass-panel" style="padding: 0; overflow: hidden;">
+                    <div style="padding: 1rem; border-bottom: 1px solid var(--glass-border); display: flex; gap: 1rem;">
+                        <input type="text" id="search-material" placeholder="Buscar por código o descripción..."
+                            onkeyup="MaterialesController.renderTable()"
+                            style="background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); padding: 0.5rem 1rem; border-radius: 0.5rem; color: white; outline: none; width: 100%; max-width: 400px;">
+                    </div>
+                    <div style="max-height: 70vh; overflow-y: auto;">
+                        <table class="modern-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 15%;">
+                                        Código
+                                    </th>
+                                    <th style="width: 45%;">
+                                        Descripción
+                                    </th>
+                                    <th style="width: 10%;">
+                                        Unidad
+                                    </th>
+                                    <th style="width: 15%;">
+                                        Precio
+                                    </th>
+                                    <th style="width: 15%;">
+                                        Acciones
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody id="materiales-table-body">
+                                <!-- JS Injected -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+        <!-- MODAL: EDICIÓN/NUEVO EQUIPO (Moved to ensure visibility) -->
+        <div id="modal-equipo" class="modal" style="display: none;">
+            <div class="modal-content" style="max-width: 600px;">
+                <div class="modal-header">
+                    <h2 id="modal-equipo-title">
+                        Editar Equipo
+                    </h2>
+                    <button class="btn-close" onclick="EquiposController.closeModal()">
+                        &times;
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="form-equipo" onsubmit="event.preventDefault(); EquiposController.save();">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <div class="form-group">
+                                <label>
+                                    Código SAP / ID
+                                </label>
+                                <input type="text" id="eq-codigo" class="form-control" required disabled>
+                            </div>
+                            <div class="form-group">
+                                <label>
+                                    Aforo Consumo (Gl/h)
+                                </label>
+                                <input type="text" id="eq-consumo" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label>
+                                    Descripción Equipo
+                                </label>
+                                <input type="text" id="eq-descripcion" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label>
+                                    Ubicación
+                                </label>
+                                <input type="text" id="eq-ubicacion" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label>
+                                    Función Implemento
+                                </label>
+                                <input type="text" id="eq-funcion" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label>
+                                    Proveedor
+                                </label>
+                                <select id="eq-proveedor" class="form-control">
+                                    <option value="PROPIO">
+                                        PROPIO
+                                    </option>
+                                    <option value="CELSIA">
+                                        CELSIA
+                                    </option>
+                                    <option value="RIOEN">
+                                        RIOEN
+                                    </option>
+                                    <option value="CONTRATISTA">
+                                        CONTRATISTA
+                                    </option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>
+                                    Aforo Caudal (L/s)
+                                </label>
+                                <input type="text" id="eq-caudal" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label>
+                                    Variador (SI/NO)
+                                </label>
+                                <select id="eq-variador" class="form-control">
+                                    <option value="SI">
+                                        SI
+                                    </option>
+                                    <option value="NO">
+                                        NO
+                                    </option>
+                                    <option value="N/A">
+                                        N/A
+                                    </option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>
+                                    Potencia (HP)
+                                </label>
+                                <input type="text" id="eq-hp" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label>
+                                    Potencia (KW)
+                                </label>
+                                <input type="text" id="eq-kw" class="form-control">
+                            </div>
+                        </div>
+                        <div class="modal-footer" style="margin-top: 1.5rem;">
+                            <button type="button" class="btn" onclick="EquiposController.closeModal()">
+                                Cancelar
+                            </button>
+                            <button type="submit" class="btn btn-primary">
+                                Guardar Cambios
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <!-- MODAL: NUEVO MATERIAL -->
+        <div id="modal-material"
+            style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 9999; display: none; align-items: center; justify-content: center;">
+            <div class="glass-panel"
+                style="max-width: 400px; width: 90%; padding: 2rem; background: #1a1a1a; border: 1px solid var(--glass-border);">
+                <h3 style="margin-top: 0; margin-bottom: 1.5rem; color: var(--secondary);">
+                    Crear Nuevo Material
+                </h3>
+                <div style="display: grid; gap: 1rem;">
+                    <div class="form-group">
+                        <label
+                            style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.4rem;">
+                            Código
+                        </label>
+                        <input type="text" id="new-mat-codigo" class="input-dark"
+                            style="width: 100%; background: #fff; color: #333;" placeholder="Ej: 14700XXX">
+                    </div>
+                    <div class="form-group">
+                        <label
+                            style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.4rem;">
+                            Descripción
+                        </label>
+                        <input type="text" id="new-mat-desc" class="input-dark"
+                            style="width: 100%; background: #fff; color: #333;" placeholder="Nombre del material">
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div class="form-group">
+                            <label
+                                style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.4rem;">
+                                Unidad
+                            </label>
+                            <input type="text" id="new-mat-unidad" class="input-dark"
+                                style="width: 100%; background: #fff; color: #333;" placeholder="UN/GLN/KG">
+                        </div>
+                        <div class="form-group">
+                            <label
+                                style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.4rem;">
+                                Precio Unitario
+                            </label>
+                            <input type="number" id="new-mat-precio" class="input-dark"
+                                style="width: 100%; background: #fff; color: #333;" value="0">
+                        </div>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+                    <button class="btn" onclick="MaterialesController.closeModal()"
+                        style="flex: 1; background: rgba(255,255,255,0.05); color: white; border: 1px solid var(--glass-border);">
+                        Cancelar
+                    </button>
+                    <button class="btn-primary" onclick="MaterialesController.save()"
+                        style="flex: 1; background: var(--secondary); color: white; border: none; padding: 0.7rem; border-radius: 0.5rem; cursor: pointer;">
+                        Guardar
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- MODAL: CHART DETAILS (Drill-down) -->
+        <div id="modal-chart-details" class="modal-overlay" style="display: none;">
+            <div class="modal-container" style="max-width: 900px; width: 95%;">
+                <header class="modal-header">
+                    <h2 id="chart-details-title">
+                        Detalle de Registros
+                    </h2>
+                    <button class="close-modal-btn"
+                        onclick="document.getElementById('modal-chart-details').style.display='none'">
+                        <i data-lucide="x">
+                        </i>
+                    </button>
+                </header>
+                <div class="modal-body">
+                    <div id="chart-details-insight"
+                        style="background: rgba(16, 185, 129, 0.1); border-left: 4px solid #10b981; padding: 1rem; margin-bottom: 1rem; border-radius: 4px; display: none;">
+                        <!-- Insight content injected via JS -->
+                    </div>
+                    <div class="table-container" style="max-height: 500px; overflow-y: auto;">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>
+                                        Fecha
+                                    </th>
+                                    <th>
+                                        ID Boleta
+                                    </th>
+                                    <th>
+                                        Equipo / Destino
+                                    </th>
+                                    <th>
+                                        Actividad
+                                    </th>
+                                    <th>
+                                        Item
+                                    </th>
+                                    <th>
+                                        Cant.
+                                    </th>
+                                    <th>
+                                        Costo Total
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody id="chart-details-body">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary"
+                        onclick="document.getElementById('modal-chart-details').style.display='none'">
+                        Cerrar
+                    </button>
+                </div>
+            </div>
+        </div>
+        <script src="FileUtils.js">
+        </script>
+        <script src="MaintenanceDashboard.js">
+        </script>
+        <script src="programacioncontroller.js">
+        </script>
+        <script>
+            // DIAGNOSTICO DE BOLETAS PERDIDAS
+            window.findBoleta = function (idPartial) {
+                const id = idPartial.trim().toUpperCase();
+                const boletas = JSON.parse(localStorage.getItem('hidrofix_boletas') || '[]');
+                const trash = JSON.parse(localStorage.getItem('hidrofix_papelera') || '[]');
+                const foundActive = boletas.find(b => b.id.includes(id));
+                const foundTrash = trash.find(t => t._deletedId && t._deletedId.includes(id));
+                let msg = `BUSQUEDA DE "${id}":\n\n`;
+                if (foundActive) {
+                    msg += `✅ ENCONTRADA EN ACTIVOS:\nID: ${foundActive.id}\nSolicitante: ${foundActive.solicitante}\nFecha: ${foundActive.fecha}\n(Debería ser visible en la lista)`;
+                } else if (foundTrash) {
+                    msg += `🗑️ ENCONTRADA EN PAPELERA:\nID: ${foundTrash._deletedId}\nEliminada: ${foundTrash._deletedAt}\n(Intenta restaurarla ahora)`;
+                } else {
+                    msg += `❌ NO ENCONTRADA en la base de datos local.\n\nPosibles causas:\n- No se guardó correctamente.\n- Se borró el historial de navegación.\n- Navegación Incógnito cerrada.`;
+                }
+                alert(msg);
+                return { active: foundActive, trash: foundTrash };
+            };
+
+            // Init Lucide Icons
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            } else {
+                console.warn("Lucide icons failed to load. Check internet connection.");
+            }
+
+            let currentUser = { name: 'Admin', role: 'ADMIN' };
+
+            function loginUser(name, role) {
+                console.log(`Logging in as: ${name} (${role})`);
+                currentUser = { name, role };
+                // Update Welcome Message
+                document.getElementById('welcome-user-name').innerText = name.split(' ')[0];
+                enterApp();
+            }
+
+            // Start Screen Logic - MODIFIED: DIRECT ENTRY (No Welcome Screen)
+            async function enterApp() {
+                const loginView = document.getElementById('view-login');
+                const sidebar = document.getElementById('main-sidebar');
+                // 1. Hide Login Immediately
+                if (loginView) loginView.style.display = 'none';
+                // 2. Show Sidebar (App Interface)
+                if (sidebar) sidebar.style.display = 'flex';
+
+                // 2b. Init Controllers (Sequentially and with Error Handling)
+                try {
+                    if (typeof DataManager !== 'undefined' && DataManager.init) {
+                        console.log("Initializing DataManager...");
+                        await DataManager.init();
+                    }
+                } catch (e) { console.error("DataManager Init Error:", e); }
+
+                const controllers = [
+                    { name: 'DashboardController', ref: typeof DashboardController !== 'undefined' ? DashboardController : null },
+                    { name: 'BoletasController', ref: typeof BoletasController !== 'undefined' ? BoletasController : null },
+                    { name: 'PlanesController', ref: typeof PlanesController !== 'undefined' ? PlanesController : null },
+                    { name: 'ProgramacionController', ref: typeof ProgramacionController !== 'undefined' ? ProgramacionController : null },
+                    { name: 'EquiposController', ref: typeof EquiposController !== 'undefined' ? EquiposController : null },
+                    { name: 'CapexController', ref: typeof CapexController !== 'undefined' ? CapexController : null },
+                    { name: 'MaterialesController', ref: typeof MaterialesController !== 'undefined' ? MaterialesController : null },
+                    { name: 'CalendarController', ref: typeof CalendarController !== 'undefined' ? CalendarController : null },
+                    { name: 'MapController', ref: typeof MapController !== 'undefined' ? MapController : null },
+                    { name: 'RecycleBinController', ref: typeof RecycleBinController !== 'undefined' ? RecycleBinController : null },
+                    { name: 'ConfigController', ref: typeof ConfigController !== 'undefined' ? ConfigController : null },
+                    { name: 'DerivacionesController', ref: typeof DerivacionesController !== 'undefined' ? DerivacionesController : null },
+                    { name: 'LaboresController', ref: typeof LaboresController !== 'undefined' ? LaboresController : null },
+                    { name: 'Branding', ref: typeof Branding !== 'undefined' ? Branding : null },
+                    { name: 'ProfileController', ref: typeof ProfileController !== 'undefined' ? ProfileController : null }
+                ];
+
+                for (const ctrl of controllers) {
+                    try {
+                        if (ctrl.ref && ctrl.ref.init) {
+                            console.log(`Initializing ${ctrl.name}...`);
+                            ctrl.ref.init();
+                        }
+                    } catch (e) {
+                        console.error(`Error initializing ${ctrl.name}:`, e);
+                    }
+                }
+
+                // 3. Ensure Icons Load
+                if (window.lucide) lucide.createIcons();
+
+                // 4. Navigate to Default View (según usuario)
+                let landing = 'centro';
+                try {
+                    const u = (typeof AuthManager !== 'undefined' && AuthManager.getUser) ? AuthManager.getUser() : null;
+                    const uname = u && (u.username || '').toLowerCase();
+                    if (uname === 'johan') landing = 'actividades';
+                    else if (uname === 'jvargas') landing = 'boletas';
+                } catch (e) { }
+                navigate(landing);
+            }
+
+            function continueToApp() {
+                enterApp();
+            }
+
+            // Simple Router
+            function navigate(viewName) {
+                let targetView = viewName;
+                if (targetView === 'planes') targetView = 'planes-selection';
+
+                // Hide all views
+                document.querySelectorAll('.view-section').forEach(el => el.style.display = 'none');
+                // Show target view
+                const targetEl = document.getElementById('view-' + targetView);
+                if (targetEl) targetEl.style.display = 'block';
+                else console.warn(`View not found: view-${targetView}`);
+
+                // Topbar: módulo actual + usuario
+                try {
+                    const h1 = targetEl ? targetEl.querySelector('h1') : null;
+                    const modEl = document.getElementById('topbar-module');
+                    if (modEl) modEl.textContent = (h1 ? h1.textContent.trim() : targetView).slice(0, 48);
+                    const u = (typeof currentUser !== 'undefined' && currentUser) ? currentUser : (JSON.parse(localStorage.getItem('hidrofix_user') || 'null'));
+                    if (u) {
+                        const nm = document.getElementById('topbar-name'); if (nm) nm.textContent = u.name || u.full_name || u.username || '';
+                        const rl = document.getElementById('topbar-role'); if (rl) rl.textContent = u.role_display || u.role || '';
+                        const av = document.getElementById('topbar-avatar');
+                        if (av && typeof AuthManager !== 'undefined') av.innerHTML = AuthManager.getAvatarHtml(u, '30px');
+                    }
+                    const sy = document.getElementById('topbar-sync');
+                    if (sy) sy.textContent = 'Actualizado ' + new Date().toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
+                    if (window.lucide) lucide.createIcons();
+                } catch (e) { /* no-op */ }
+
+                // Update Menu Active State
+                document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+
+                const navItems = document.querySelectorAll('.nav-item');
+                navItems.forEach(item => {
+                    const text = item.innerText.toLowerCase().trim();
+                    const onclickStr = item.getAttribute('onclick') || '';
+                    const viewInOnclick = onclickStr.match(/navigate\(['"]([^'"]+)['"]\)/);
+                    const cleanViewName = viewName.replace('view-', '');
+
+                    if (viewInOnclick && viewInOnclick[1] === cleanViewName) {
+                        item.classList.add('active');
+                    } else if (viewName === 'labores' && text.includes('labores')) {
+                        item.classList.add('active');
+                    } else if (viewName === 'dashboard' && text.includes('dashboard')) {
+                        item.classList.add('active');
+                    } else if (cleanViewName === 'config' && item.id === 'nav-config') {
+                        item.classList.add('active');
+                    }
+                });
+
+                // Controller specifics
+                try {
+                    console.log(`Navigating to: ${targetView}`);
+                    if (targetView === 'boletas') {
+                        if (typeof BoletasController !== 'undefined') BoletasController.init();
+                    } else if (targetView === 'dashboard') {
+                        if (typeof DashboardController !== 'undefined') {
+                            DashboardController.switchTab('mantenimiento');
+                            const backupControls = document.getElementById('backup-controls');
+                            const navRecycle = document.getElementById('nav-recycle-bin');
+                            const navConfig = document.getElementById('nav-config');
+                            if (currentUser.role === 'ADMIN') {
+                                if (backupControls) backupControls.style.display = 'block';
+                                if (navRecycle) navRecycle.style.display = 'flex';
+                                if (navConfig) navConfig.style.display = 'flex';
+                            } else {
+                                if (backupControls) backupControls.style.display = 'none';
+                                if (navRecycle) navRecycle.style.display = 'none';
+                                if (navConfig) navConfig.style.display = 'none';
+                            }
+                        }
+                    } else if (viewName === 'auditoria') {
+                        if (typeof PlanesController !== 'undefined') PlanesController.startAuditMode();
+                    } else if (viewName === 'planes') {
+                        if (typeof PlanesController !== 'undefined') PlanesController.init();
+                    } else if (viewName === 'equipos') {
+                        if (typeof EquiposController !== 'undefined') EquiposController.init();
+                    } else if (viewName === 'materiales') {
+                        if (typeof MaterialesController !== 'undefined') MaterialesController.init();
+                    } else if (viewName === 'calendario') {
+                        if (typeof CalendarController !== 'undefined') CalendarController.init();
+                    } else if (viewName === 'programacion') {
+                        if (typeof ProgramacionController !== 'undefined') ProgramacionController.loadView();
+                    } else if (viewName === 'labores') {
+                        if (typeof LaboresController !== 'undefined') LaboresController.init();
+                    } else if (viewName === 'derivaciones') {
+                        if (typeof DerivacionesController !== 'undefined') DerivacionesController.init();
+                    } else if (viewName === 'mapa') {
+                        if (typeof MapController !== 'undefined') MapController.init();
+                    } else if (viewName === 'auditoria') {
+                        if (typeof AuditoriaController !== 'undefined') AuditoriaController.init();
+                    } else if (viewName === 'papelera') {
+                        if (typeof RecycleBinController !== 'undefined') RecycleBinController.init();
+                    } else if (viewName === 'config') {
+                        if (typeof ConfigController !== 'undefined') ConfigController.init();
+                    } else if (viewName === 'perfil') {
+                        if (typeof ProfileController !== 'undefined') ProfileController.init();
+                    } else if (viewName === 'centro') {
+                        if (typeof CentroController !== 'undefined') CentroController.init();
+                    } else if (viewName === 'actividades') {
+                        if (typeof ActividadesController !== 'undefined') ActividadesController.init();
+                    }
+                } catch (e) {
+                    alert(`INIT ERROR (${viewName}): ${e.message}`);
+                    console.error(`Error initializing view ${viewName}:`, e);
+                }
+            }
+
+            // --- SERVICE WORKER REGISTRATION (PWA) ---
+            if ('serviceWorker' in navigator && (window.location.protocol === 'https:' || window.location.protocol === 'http:')) {
+                navigator.serviceWorker.getRegistrations().then(function (registrations) {
+                    for (let registration of registrations) {
+                        registration.unregister();
+                        console.log("Service Worker unregistered to force update.");
+                    }
+                });
+            }
+
+            // --- GLOBAL INIT (MUST BE AT END) ---
+            window.onerror = function (msg, url, lineNo, columnNo, error) {
+                const string = msg.toLowerCase();
+                const substring = "script error";
+                if (string.indexOf(substring) > -1) {
+                    alert('Script Error: See Console for details');
+                } else {
+                    alert('Internal Error: ' + msg + '\nLine: ' + lineNo);
+                }
+                return false;
+            };
+
+            try {
+                console.log("App Ready. Waiting for user login...");
+                if (typeof AuthManager !== 'undefined') {
+                    AuthManager.init();
+                } else {
+                    console.error("AuthManager not found!");
+                }
+            } catch (e) {
+                alert("CRITICAL INIT ERROR: " + e.message);
+                console.error(e);
+            }
+        </script>
+        <!-- DASHBOARD DRILL DOWN MODAL -->
+        <div id="dashboard-detail-modal"
+            style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 20000; align-items: center; justify-content: center; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px);">
+            <div class="glass-panel"
+                style="width: 90%; max-width: 1000px; height: 80vh; display: flex; flex-direction: column; background: var(--bg-panel); border: 1px solid var(--glass-border); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
+                <!-- Header -->
+                <div
+                    style="padding: 1.5rem; border-bottom: 1px solid var(--glass-border); display: flex; justify-content: space-between; align-items: center;">
+                    <h3 id="dashboard-modal-title"
+                        style="font-size: 1.25rem; font-weight: 700; color: var(--text-main);">
+                        Detalle
+                    </h3>
+                    <button onclick="document.getElementById('dashboard-detail-modal').style.display = 'none'"
+                        style="background: transparent; border: none; color: var(--text-muted); cursor: pointer;">
+                        <i data-lucide="x" style="width: 24px; height: 24px;">
+                        </i>
+                    </button>
+                </div>
+                <!-- Content -->
+                <div id="dashboard-modal-body" style="flex: 1; overflow-y: auto; padding: 1.5rem;">
+                </div>
+                <!-- Footer -->
+                <div style="padding: 1rem 1.5rem; border-top: 1px solid var(--glass-border); text-align: right;">
+                    <button onclick="document.getElementById('dashboard-detail-modal').style.display = 'none'"
+                        class="btn btn-secondary">
+                        Cerrar
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- MODAL: CAPEX FORM -->
+        <div id="modal-capex" class="modal"
+            style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 20000; align-items: center; justify-content: center; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px);">
+            <div class="modal-content glass-panel"
+                style="width: 100%; max-width: 500px; background: var(--bg-panel); border: 1px solid var(--glass-border); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
+                <h2 style="margin-bottom: 1.5rem; color: var(--text-main);">
+                    Detalles de Inversión
+                </h2>
+                <form id="form-capex" onsubmit="event.preventDefault(); CapexController.save();">
+                    <div class="form-group">
+                        <label style="display: block; margin-bottom: 0.5rem; color: var(--text-muted);">
+                            Descripción
+                        </label>
+                        <input type="text" id="capex-desc" class="input-dark" style="width: 100%;" required
+                            placeholder="Ej: Overhaul Motor...">
+                    </div>
+                    <div class="form-group">
+                        <label style="display: block; margin-bottom: 0.5rem; color: var(--text-muted);">
+                            Proveedor
+                        </label>
+                        <input type="text" id="capex-prov" class="input-dark" style="width: 100%;"
+                            placeholder="Opcional">
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div class="form-group">
+                            <label style="display: block; margin-bottom: 0.5rem; color: var(--text-muted);">
+                                Presupuesto (Planificado)
+                            </label>
+                            <input type="number" id="capex-presupuesto" class="input-dark" style="width: 100%;" required
+                                min="0">
+                        </div>
+                        <div class="form-group">
+                            <label style="display: block; margin-bottom: 0.5rem; color: var(--text-muted);">
+                                Gasto Ejecutado (Real)
+                            </label>
+                            <input type="number" id="capex-ejecutado" class="input-dark" style="width: 100%;" required
+                                min="0">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label style="display: block; margin-bottom: 0.5rem; color: var(--text-muted);">
+                            Fecha
+                        </label>
+                        <input type="date" id="capex-fecha" class="input-dark" style="width: 100%;" required>
+                    </div>
+                    <div class="form-group">
+                        <label style="display: block; margin-bottom: 0.5rem; color: var(--text-muted);">
+                            Categoría
+                        </label>
+                        <select id="capex-cat" class="input-dark" style="width: 100%;">
+                            <option value="Maquinaria">
+                                Maquinaria
+                            </option>
+                            <option value="Infraestructura">
+                                Infraestructura
+                            </option>
+                            <option value="Tecnología">
+                                Tecnología
+                            </option>
+                            <option value="Otros">
+                                Otros
+                            </option>
+                        </select>
+                    </div>
+                    <div style="margin-top: 1.5rem; display: flex; justify-content: flex-end; gap: 1rem;">
+                        <button type="button" class="btn" onclick="CapexController.closeModal()"
+                            style="border: 1px solid var(--glass-border); background: transparent; color: var(--text-muted);">
+                            Cancelar
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            Guardar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- End #app -->
+    <script>
+        // ============================================ 
+        // INICIALIZACIÓN AUTOMÁTICA DE CONTROLADORES 
+        // ============================================ 
+        document.addEventListener('DOMContentLoaded', function () {
+            console.log('🚀 Inicializando aplicación Hidrofix...');
+            // Esperar a que AuthManager termine
+            setTimeout(() => {
+                if (!AuthManager.isAuthenticated()) {
+                    console.log('⏸️ Usuario no autenticado, esperando login...');
+                    return;
+                }
+                console.log('✅ Usuario autenticado, inicializando módulos...');
+                // Inicializar todos los controladores
+                try {
+                    enterApp();
+                } catch (error) {
+                    console.error('❌ Error al inicializar aplicación:', error);
+                }
+            }, 500);
+        });
+    </script>
+</body>
+
+</html>
