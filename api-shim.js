@@ -197,7 +197,21 @@
                 headers: restHeaders(),
                 body: JSON.stringify({ password: body.newPassword })
             });
-            if (!up.ok) return json({ success: false, message: 'No se pudo actualizar la contraseña' }, 200);
+            if (!up.ok) {
+                var em = 'No se pudo actualizar la contraseña.';
+                try {
+                    var ed = await up.json();
+                    var raw = String(ed.msg || ed.error_description || ed.message || '').toLowerCase();
+                    if (raw.indexOf('at least') !== -1 || raw.indexOf('6 character') !== -1 || raw.indexOf('length') !== -1 || raw.indexOf('short') !== -1) {
+                        em = 'La contraseña debe tener al menos 6 caracteres.';
+                    } else if (raw.indexOf('weak') !== -1 || raw.indexOf('pwned') !== -1 || raw.indexOf('leaked') !== -1) {
+                        em = 'Esa contraseña es muy común/insegura. Elige otra.';
+                    } else if (ed.msg || ed.error_description) {
+                        em = ed.msg || ed.error_description;
+                    }
+                } catch (e) { }
+                return json({ success: false, message: em }, 200);
+            }
             // limpiar flag must_change_password
             if (body.username) {
                 await restCall(REST + 'users?username=eq.' + encodeURIComponent(body.username), {

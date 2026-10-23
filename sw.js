@@ -1,4 +1,4 @@
-const CACHE_NAME = 'hidrofix-v46';
+const CACHE_NAME = 'hidrofix-v47';
 const ASSETS = [
     './',
     './index.html',

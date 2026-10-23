@@ -398,9 +398,9 @@ const ProfileController = {
             return;
         }
 
-        if (newPass.length < 4) {
+        if (newPass.length < 6) {
             msgEl.style.color = 'var(--danger)';
-            msgEl.textContent = 'La contraseña debe tener al menos 4 caracteres';
+            msgEl.textContent = 'La contraseña debe tener al menos 6 caracteres';
             return;
         }
 

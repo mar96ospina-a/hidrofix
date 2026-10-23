@@ -243,7 +243,7 @@ const AuthManager = {
         ov.innerHTML = `
             <div style="background:var(--bg-panel,#191c20);color:var(--text-main,#e4e7ea);border:1px solid var(--glass-border,#2b2f35);border-radius:10px;max-width:400px;width:92%;padding:1.6rem;box-shadow:0 20px 60px rgba(0,0,0,.5);">
                 <h2 style="margin:0 0 .3rem;font-size:1.2rem;">Crea tu contraseña</h2>
-                <p style="margin:0 0 1.1rem;color:var(--text-muted,#8a929b);font-size:.85rem;">Por seguridad, cambia la clave temporal antes de continuar.</p>
+                <p style="margin:0 0 1.1rem;color:var(--text-muted,#8a929b);font-size:.85rem;">Por seguridad, cambia la clave temporal antes de continuar. Mínimo 6 caracteres.</p>
                 <input id="fp-1" type="password" placeholder="Nueva contraseña" style="width:100%;box-sizing:border-box;margin-bottom:.6rem;background:var(--bg-dark,#141619);color:var(--text-main);border:1px solid var(--glass-border);border-radius:6px;padding:.6rem .7rem;font-size:.9rem;">
                 <input id="fp-2" type="password" placeholder="Confirmar contraseña" style="width:100%;box-sizing:border-box;margin-bottom:.4rem;background:var(--bg-dark,#141619);color:var(--text-main);border:1px solid var(--glass-border);border-radius:6px;padding:.6rem .7rem;font-size:.9rem;">
                 <div id="fp-err" style="color:var(--danger,#c05058);font-size:.78rem;min-height:1.1em;margin-bottom:.6rem;"></div>
@@ -253,7 +253,7 @@ const AuthManager = {
         const err = ov.querySelector('#fp-err');
         ov.querySelector('#fp-save').onclick = async () => {
             const p1 = ov.querySelector('#fp-1').value, p2 = ov.querySelector('#fp-2').value;
-            if (p1.length < 4) { err.textContent = 'Mínimo 4 caracteres.'; return; }
+            if (p1.length < 6) { err.textContent = 'La contraseña debe tener al menos 6 caracteres.'; return; }
             if (p1 !== p2) { err.textContent = 'Las contraseñas no coinciden.'; return; }
             try {
                 const r = await fetch(this.API_URL + '/force-password', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username, newPassword: p1 }) });
