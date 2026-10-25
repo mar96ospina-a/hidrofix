@@ -28,8 +28,13 @@ const ActividadesController = (function () {
             (!filtros.responsable || a.responsable === filtros.responsable) &&
             (!filtros.labor || a.labor === filtros.labor) &&
             (!filtros.estado || a.estado === filtros.estado) &&
-            (!filtros.q || (a.zona + a.accion + a.labor + a.responsable).toLowerCase().includes(filtros.q.toLowerCase()))
-        );
+            (!filtros.q || ((a.zona || '') + (a.accion || '') + (a.labor || '') + (a.responsable || '')).toLowerCase().includes(filtros.q.toLowerCase()))
+        ).sort((a, b) => {
+            // más reciente primero (por fecha; empate por id para que lo recién creado quede arriba)
+            const fa = a.fecha || '', fb = b.fecha || '';
+            if (fa !== fb) return fb < fa ? -1 : 1;
+            return String(b.id || '').localeCompare(String(a.id || ''));
+        });
     }
 
     function kpis(rows) {
