@@ -297,7 +297,11 @@ const CentroController = (function () {
             </div>`;
         };
         host.innerHTML = `
-            <p style="color:var(--text-muted);font-size:.8rem;margin:0 0 1rem;">${equipos.length} equipos con plantilla. Clic en una tarjeta para ver sus mantenimientos; <b style="color:var(--text-main);">Generar boleta</b> crea la requisición y abre la vista para imprimir / enviar por correo / WhatsApp.</p>
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:0 0 1rem;">
+                <p style="color:var(--text-muted);font-size:.8rem;margin:0;max-width:620px;">${equipos.length} equipos con plantilla. Clic en una tarjeta para ver sus mantenimientos; <b style="color:var(--text-main);">Generar boleta</b> crea la requisición. Para crear una nueva (p. ej. 500h o 750h de un tractor) usa el botón de la derecha — se agrega sola al grupo del equipo.</p>
+                <button id="btn-nueva-tpl" style="background:var(--primary);color:#fff;border:1px solid var(--primary-strong);border-radius:8px;padding:.55rem 1.1rem;font-weight:700;font-size:.85rem;cursor:pointer;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;"><i data-lucide="plus" style="width:16px;height:16px;"></i> Nueva plantilla</button>
+            </div>
+            <div id="nueva-tpl-form"></div>
             <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1rem;align-items:start;">
                 ${equipos.map(cardHtml).join('')}
             </div>`;
@@ -312,7 +316,104 @@ const CentroController = (function () {
         });
         // Generar boleta por plantilla específica
         host.querySelectorAll('[data-tpl]').forEach(b => b.onclick = (ev) => { ev.stopPropagation(); generarBoletaTpl(b.getAttribute('data-tpl')); });
+        // Nueva plantilla
+        const btnNueva = host.querySelector('#btn-nueva-tpl');
+        if (btnNueva) btnNueva.onclick = () => renderNuevaForm(host);
         if (window.lucide) lucide.createIcons();
+    }
+
+    let _matRowSeq = 0;
+    function matRowHtml() {
+        _matRowSeq++;
+        return `<div class="mat-row" data-row="${_matRowSeq}" style="display:flex;gap:.5rem;align-items:center;margin-bottom:.5rem;">
+            <input class="mat-cod" list="cat-mats" placeholder="Buscar material (código o nombre)…" style="flex:1;min-width:200px;padding:.5rem .6rem;background:var(--bg-panel);color:var(--text-main);border:1px solid var(--glass-border);border-radius:6px;font-size:.85rem;">
+            <input class="mat-cant" type="number" min="0" step="0.5" placeholder="Cant." style="width:90px;padding:.5rem .6rem;background:var(--bg-panel);color:var(--text-main);border:1px solid var(--glass-border);border-radius:6px;font-size:.85rem;">
+            <button class="mat-del" title="Quitar" style="background:none;border:none;color:var(--danger);cursor:pointer;display:inline-flex;"><i data-lucide="x" style="width:16px;height:16px;"></i></button>
+        </div>`;
+    }
+    function wireMatDel(cont) {
+        cont.querySelectorAll('.mat-del').forEach(b => b.onclick = () => { const r = b.closest('.mat-row'); if (r) r.remove(); });
+    }
+
+    function renderNuevaForm(host) {
+        const cont = host.querySelector('#nueva-tpl-form');
+        if (!cont) return;
+        if (cont.innerHTML.trim()) { cont.innerHTML = ''; return; } // toggle
+        const cat = (typeof DataManager !== 'undefined' && DataManager.getAllMaterials) ? DataManager.getAllMaterials() : [];
+        const esc = s => String(s || '').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+        const opts = cat.map(m => `<option value="${esc(m.codigo)} · ${esc(m.descripcion)}"></option>`).join('');
+        const eqOpts = DIESEL.map(e => `<option value="${e}">${e} — ${esc(NOMBRE[e] || (TRACT.includes(e) ? 'Tractor' : 'Motobomba diésel ' + e))}</option>`).join('');
+        cont.innerHTML = `
+            <datalist id="cat-mats">${opts}</datalist>
+            <div class="glass-panel" style="padding:1.1rem 1.2rem;margin-bottom:1rem;border-left:3px solid var(--primary);">
+                <div style="font-weight:800;font-size:1rem;margin-bottom:.9rem;color:var(--text-main);">Nueva plantilla de mantenimiento</div>
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:.8rem;margin-bottom:1rem;">
+                    <label style="font-size:.72rem;color:var(--text-muted);">Equipo<select id="ntpl-eq" style="width:100%;margin-top:3px;padding:.5rem .6rem;background:var(--bg-panel);color:var(--text-main);border:1px solid var(--glass-border);border-radius:6px;font-size:.85rem;">${eqOpts}</select></label>
+                    <label style="font-size:.72rem;color:var(--text-muted);">Horas (frecuencia)<input id="ntpl-horas" type="number" min="1" step="1" placeholder="Ej: 500" style="width:100%;margin-top:3px;padding:.5rem .6rem;background:var(--bg-panel);color:var(--text-main);border:1px solid var(--glass-border);border-radius:6px;font-size:.85rem;"></label>
+                    <label style="font-size:.72rem;color:var(--text-muted);grid-column:1/-1;">Descripción (opcional)<input id="ntpl-desc" type="text" placeholder="Se genera automática si lo dejas vacío" style="width:100%;margin-top:3px;padding:.5rem .6rem;background:var(--bg-panel);color:var(--text-main);border:1px solid var(--glass-border);border-radius:6px;font-size:.85rem;"></label>
+                </div>
+                <div style="font-size:.72rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:.5rem;">Insumos / materiales</div>
+                <div id="ntpl-mats">${matRowHtml()}</div>
+                <button id="ntpl-addmat" style="background:transparent;color:var(--primary-strong);border:1px dashed var(--primary);border-radius:6px;padding:.4rem .8rem;font-size:.8rem;cursor:pointer;margin-top:.2rem;"><i data-lucide="plus" style="width:14px;height:14px;vertical-align:-2px;"></i> Agregar material</button>
+                <div id="ntpl-err" style="color:var(--danger);font-size:.78rem;min-height:1.1em;margin:.6rem 0;"></div>
+                <div style="display:flex;gap:.6rem;">
+                    <button id="ntpl-save" style="background:var(--primary);color:#fff;border:1px solid var(--primary-strong);border-radius:6px;padding:.55rem 1.2rem;font-weight:700;font-size:.85rem;cursor:pointer;">Guardar plantilla</button>
+                    <button id="ntpl-cancel" style="background:transparent;color:var(--text-muted);border:1px solid var(--glass-border);border-radius:6px;padding:.55rem 1.2rem;font-size:.85rem;cursor:pointer;">Cancelar</button>
+                </div>
+            </div>`;
+        cont.querySelector('#ntpl-addmat').onclick = () => {
+            const wrap = document.createElement('div'); wrap.innerHTML = matRowHtml();
+            cont.querySelector('#ntpl-mats').appendChild(wrap.firstElementChild);
+            wireMatDel(cont); if (window.lucide) lucide.createIcons();
+        };
+        cont.querySelector('#ntpl-cancel').onclick = () => { cont.innerHTML = ''; };
+        cont.querySelector('#ntpl-save').onclick = () => saveNuevaPlantilla(host, cont);
+        wireMatDel(cont);
+        if (window.lucide) lucide.createIcons();
+        const h = cont.querySelector('#ntpl-horas'); if (h) h.focus();
+    }
+
+    async function saveNuevaPlantilla(host, cont) {
+        const err = cont.querySelector('#ntpl-err');
+        const eq = cont.querySelector('#ntpl-eq').value;
+        const horas = parseInt(cont.querySelector('#ntpl-horas').value, 10);
+        let desc = (cont.querySelector('#ntpl-desc').value || '').trim();
+        const show = (msg, bad) => { err.style.color = bad ? 'var(--danger)' : 'var(--text-muted)'; err.textContent = msg; };
+        if (!eq) return show('Elige un equipo.', true);
+        if (!horas || horas < 1) return show('Pon las horas (ej. 500).', true);
+        const cat = (typeof DataManager !== 'undefined' && DataManager.getAllMaterials) ? DataManager.getAllMaterials() : [];
+        const byCode = {}; cat.forEach(m => byCode[String(m.codigo)] = m);
+        const materiales = [];
+        cont.querySelectorAll('.mat-row').forEach(r => {
+            const raw = (r.querySelector('.mat-cod').value || '').trim();
+            const cant = parseFloat(r.querySelector('.mat-cant').value);
+            if (!raw || !(cant > 0)) return;
+            const code = raw.split('·')[0].trim();
+            const m = byCode[code];
+            materiales.push({ codigo: code, descripcion: m ? (m.descripcion || '') : raw, cantidad: cant, unidad: m ? (m.unidad || '') : '' });
+        });
+        if (!materiales.length) return show('Agrega al menos un material con cantidad.', true);
+        const id = 'TPL-' + eq + '-' + horas + 'H';
+        if (planes.some(p => p.id === id)) return show('Ya existe la plantilla de ' + horas + 'h para ' + eq + '. Usa otras horas.', true);
+        const nombre = NOMBRE[eq] || (TRACT.includes(eq) ? 'Tractor' : 'Motobomba diésel ' + eq);
+        if (!desc) desc = 'PLANTILLA ' + horas + 'H - ' + nombre + ' ' + eq;
+        const plantilla = {
+            id, codigo: 'MTTO-' + horas + 'H', descripcion: desc,
+            tipo: '998 - MANTENIMIENTO PREVENTIVO', equipo: eq, frecuencia: horas,
+            estado: 'PLANTILLA', materiales: materiales
+        };
+        show('Guardando…', false);
+        try {
+            const r = await fetch(APIp, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(plantilla) });
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+            try { const rp = await fetch(APIp); const arr = await rp.json(); if (Array.isArray(arr)) { planes = arr; localStorage.setItem('hidrofix_planes_v2', JSON.stringify(arr)); } } catch (e) { }
+            if (!planes.some(p => p.id === id)) planes.push(plantilla);
+            if (typeof DataManager !== 'undefined' && DataManager.logAction) DataManager.logAction('MANTENIMIENTO', 'CREAR_PLANTILLA', id + ' (' + materiales.length + ' insumos)');
+            tab = 'plantillas';
+            render();
+        } catch (e) {
+            show('No se pudo guardar: ' + e.message, true);
+        }
     }
 
     async function generarBoletaTpl(tplId) {
