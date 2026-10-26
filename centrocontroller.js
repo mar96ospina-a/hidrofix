@@ -278,10 +278,12 @@ const CentroController = (function () {
                 <div style="border-top:1px solid var(--line);padding-top:.8rem;margin-top:.8rem;">
                     <div style="text-align:center;font-weight:700;font-size:.8rem;text-transform:uppercase;letter-spacing:.5px;color:var(--primary-strong);margin-bottom:.5rem;">Mantenimiento ${p.frecuencia || 250} h <span style="color:var(--text-dim);font-weight:500;">· ${mats(p).length} insumos</span></div>
                     <div style="margin-bottom:.8rem;">${listOf(mats(p))}</div>
-                    <div style="text-align:center;">
-                        <button data-tpl="${p.id}" style="background:var(--primary);color:#fff;border:1px solid var(--primary-strong);border-radius:4px;padding:.55rem 1.4rem;font-weight:600;font-size:.82rem;cursor:pointer;display:inline-flex;align-items:center;gap:.45rem;">
+                    <div style="display:flex;justify-content:center;align-items:center;gap:.5rem;flex-wrap:wrap;">
+                        <button data-tpl="${p.id}" style="background:var(--primary);color:#fff;border:1px solid var(--primary-strong);border-radius:4px;padding:.55rem 1.1rem;font-weight:600;font-size:.82rem;cursor:pointer;display:inline-flex;align-items:center;gap:.45rem;">
                             <i data-lucide="mail" style="width:15px;height:15px;"></i> Generar y enviar ${p.frecuencia || 250}h
                         </button>
+                        <button data-edit-tpl="${p.id}" title="Editar plantilla" style="background:transparent;color:var(--text-muted);border:1px solid var(--glass-border);border-radius:4px;padding:.55rem .65rem;cursor:pointer;display:inline-flex;align-items:center;"><i data-lucide="pencil" style="width:15px;height:15px;"></i></button>
+                        <button data-del-tpl="${p.id}" title="Eliminar plantilla" style="background:transparent;color:var(--danger);border:1px solid var(--glass-border);border-radius:4px;padding:.55rem .65rem;cursor:pointer;display:inline-flex;align-items:center;"><i data-lucide="trash-2" style="width:15px;height:15px;"></i></button>
                     </div>
                 </div>`).join('');
             return `<div class="glass-panel" style="border-left:3px solid var(--primary);overflow:hidden;">
@@ -316,18 +318,46 @@ const CentroController = (function () {
         });
         // Generar boleta por plantilla específica
         host.querySelectorAll('[data-tpl]').forEach(b => b.onclick = (ev) => { ev.stopPropagation(); generarBoletaTpl(b.getAttribute('data-tpl')); });
+        // Editar / eliminar plantilla
+        host.querySelectorAll('[data-edit-tpl]').forEach(b => b.onclick = (ev) => { ev.stopPropagation(); editarPlantilla(host, b.getAttribute('data-edit-tpl')); });
+        host.querySelectorAll('[data-del-tpl]').forEach(b => b.onclick = (ev) => { ev.stopPropagation(); eliminarPlantilla(b.getAttribute('data-del-tpl')); });
         // Nueva plantilla
         const btnNueva = host.querySelector('#btn-nueva-tpl');
         if (btnNueva) btnNueva.onclick = () => renderNuevaForm(host);
         if (window.lucide) lucide.createIcons();
     }
 
+    function editarPlantilla(host, id) {
+        const tpl = planes.find(p => p.id === id && p.estado === 'PLANTILLA');
+        if (!tpl) { alert('Plantilla no encontrada.'); return; }
+        renderNuevaForm(host, tpl);
+        const cont = host.querySelector('#nueva-tpl-form');
+        if (cont) cont.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    async function eliminarPlantilla(id) {
+        if (!confirm('¿Eliminar esta plantilla? Esta acción no se puede deshacer.')) return;
+        try {
+            const r = await fetch(APIp + '/' + encodeURIComponent(id), { method: 'DELETE', headers: { 'Content-Type': 'application/json' } });
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+            planes = planes.filter(p => p.id !== id);
+            try { localStorage.setItem('hidrofix_planes_v2', JSON.stringify(planes)); } catch (e) { }
+            if (typeof DataManager !== 'undefined' && DataManager.logAction) DataManager.logAction('MANTENIMIENTO', 'ELIMINAR_PLANTILLA', id);
+            tab = 'plantillas';
+            render();
+        } catch (e) {
+            alert('No se pudo eliminar la plantilla: ' + e.message);
+        }
+    }
+
     let _matRowSeq = 0;
-    function matRowHtml() {
+    let _editingId = null;
+    function matRowHtml(valCod, valCant) {
         _matRowSeq++;
+        const ec = s => String(s == null ? '' : s).replace(/"/g, '&quot;');
         return `<div class="mat-row" data-row="${_matRowSeq}" style="display:flex;gap:.5rem;align-items:center;margin-bottom:.5rem;">
-            <input class="mat-cod" list="cat-mats" placeholder="Buscar material (código o nombre)…" style="flex:1;min-width:200px;padding:.5rem .6rem;background:var(--bg-panel);color:var(--text-main);border:1px solid var(--glass-border);border-radius:6px;font-size:.85rem;">
-            <input class="mat-cant" type="number" min="0" step="0.5" placeholder="Cant." style="width:90px;padding:.5rem .6rem;background:var(--bg-panel);color:var(--text-main);border:1px solid var(--glass-border);border-radius:6px;font-size:.85rem;">
+            <input class="mat-cod" list="cat-mats" value="${ec(valCod)}" placeholder="Buscar material (código o nombre)…" style="flex:1;min-width:200px;padding:.5rem .6rem;background:var(--bg-panel);color:var(--text-main);border:1px solid var(--glass-border);border-radius:6px;font-size:.85rem;">
+            <input class="mat-cant" type="number" min="0" step="0.5" value="${ec(valCant)}" placeholder="Cant." style="width:90px;padding:.5rem .6rem;background:var(--bg-panel);color:var(--text-main);border:1px solid var(--glass-border);border-radius:6px;font-size:.85rem;">
             <button class="mat-del" title="Quitar" style="background:none;border:none;color:var(--danger);cursor:pointer;display:inline-flex;"><i data-lucide="x" style="width:16px;height:16px;"></i></button>
         </div>`;
     }
@@ -335,32 +365,42 @@ const CentroController = (function () {
         cont.querySelectorAll('.mat-del').forEach(b => b.onclick = () => { const r = b.closest('.mat-row'); if (r) r.remove(); });
     }
 
-    function renderNuevaForm(host) {
+    function renderNuevaForm(host, tpl) {
         const cont = host.querySelector('#nueva-tpl-form');
         if (!cont) return;
-        if (cont.innerHTML.trim()) { cont.innerHTML = ''; return; } // toggle
+        // Sin tpl (botón Nueva) y formulario ya abierto → cerrar (toggle). En edición siempre abre.
+        if (!tpl && cont.innerHTML.trim()) { cont.innerHTML = ''; _editingId = null; return; }
+        _editingId = tpl ? tpl.id : null;
         const cat = (typeof DataManager !== 'undefined' && DataManager.getAllMaterials) ? DataManager.getAllMaterials() : [];
         const esc = s => String(s || '').replace(/"/g, '&quot;').replace(/</g, '&lt;');
         const opts = cat.map(m => `<option value="${esc(m.codigo)} · ${esc(m.descripcion)}"></option>`).join('');
         const eqOpts = DIESEL.map(e => `<option value="${e}">${e} — ${esc(NOMBRE[e] || (TRACT.includes(e) ? 'Tractor' : 'Motobomba diésel ' + e))}</option>`).join('');
+        const tmats = tpl ? (Array.isArray(tpl.materiales) ? tpl.materiales : JSON.parse(tpl.materiales || '[]')) : [];
+        const matsHtml = tmats.length ? tmats.map(m => matRowHtml((m.codigo || '') + ' · ' + (m.descripcion || ''), m.cantidad)).join('') : matRowHtml();
+        const titulo = tpl ? ('Editar plantilla ' + (tpl.frecuencia || '') + 'h · ' + tpl.equipo) : 'Nueva plantilla de mantenimiento';
         cont.innerHTML = `
             <datalist id="cat-mats">${opts}</datalist>
             <div class="glass-panel" style="padding:1.1rem 1.2rem;margin-bottom:1rem;border-left:3px solid var(--primary);">
-                <div style="font-weight:800;font-size:1rem;margin-bottom:.9rem;color:var(--text-main);">Nueva plantilla de mantenimiento</div>
+                <div style="font-weight:800;font-size:1rem;margin-bottom:.9rem;color:var(--text-main);">${titulo}</div>
                 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:.8rem;margin-bottom:1rem;">
                     <label style="font-size:.72rem;color:var(--text-muted);">Equipo<select id="ntpl-eq" style="width:100%;margin-top:3px;padding:.5rem .6rem;background:var(--bg-panel);color:var(--text-main);border:1px solid var(--glass-border);border-radius:6px;font-size:.85rem;">${eqOpts}</select></label>
                     <label style="font-size:.72rem;color:var(--text-muted);">Horas (frecuencia)<input id="ntpl-horas" type="number" min="1" step="1" placeholder="Ej: 500" style="width:100%;margin-top:3px;padding:.5rem .6rem;background:var(--bg-panel);color:var(--text-main);border:1px solid var(--glass-border);border-radius:6px;font-size:.85rem;"></label>
                     <label style="font-size:.72rem;color:var(--text-muted);grid-column:1/-1;">Descripción (opcional)<input id="ntpl-desc" type="text" placeholder="Se genera automática si lo dejas vacío" style="width:100%;margin-top:3px;padding:.5rem .6rem;background:var(--bg-panel);color:var(--text-main);border:1px solid var(--glass-border);border-radius:6px;font-size:.85rem;"></label>
                 </div>
                 <div style="font-size:.72rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:.5rem;">Insumos / materiales</div>
-                <div id="ntpl-mats">${matRowHtml()}</div>
+                <div id="ntpl-mats">${matsHtml}</div>
                 <button id="ntpl-addmat" style="background:transparent;color:var(--primary-strong);border:1px dashed var(--primary);border-radius:6px;padding:.4rem .8rem;font-size:.8rem;cursor:pointer;margin-top:.2rem;"><i data-lucide="plus" style="width:14px;height:14px;vertical-align:-2px;"></i> Agregar material</button>
                 <div id="ntpl-err" style="color:var(--danger);font-size:.78rem;min-height:1.1em;margin:.6rem 0;"></div>
                 <div style="display:flex;gap:.6rem;">
-                    <button id="ntpl-save" style="background:var(--primary);color:#fff;border:1px solid var(--primary-strong);border-radius:6px;padding:.55rem 1.2rem;font-weight:700;font-size:.85rem;cursor:pointer;">Guardar plantilla</button>
+                    <button id="ntpl-save" style="background:var(--primary);color:#fff;border:1px solid var(--primary-strong);border-radius:6px;padding:.55rem 1.2rem;font-weight:700;font-size:.85rem;cursor:pointer;">${tpl ? 'Guardar cambios' : 'Guardar plantilla'}</button>
                     <button id="ntpl-cancel" style="background:transparent;color:var(--text-muted);border:1px solid var(--glass-border);border-radius:6px;padding:.55rem 1.2rem;font-size:.85rem;cursor:pointer;">Cancelar</button>
                 </div>
             </div>`;
+        if (tpl) {
+            cont.querySelector('#ntpl-eq').value = tpl.equipo;
+            cont.querySelector('#ntpl-horas').value = tpl.frecuencia || '';
+            cont.querySelector('#ntpl-desc').value = tpl.descripcion || '';
+        }
         cont.querySelector('#ntpl-addmat').onclick = () => {
             const wrap = document.createElement('div'); wrap.innerHTML = matRowHtml();
             cont.querySelector('#ntpl-mats').appendChild(wrap.firstElementChild);
@@ -393,8 +433,10 @@ const CentroController = (function () {
             materiales.push({ codigo: code, descripcion: m ? (m.descripcion || '') : raw, cantidad: cant, unidad: m ? (m.unidad || '') : '' });
         });
         if (!materiales.length) return show('Agrega al menos un material con cantidad.', true);
+        const editingId = _editingId;
         const id = 'TPL-' + eq + '-' + horas + 'H';
-        if (planes.some(p => p.id === id)) return show('Ya existe la plantilla de ' + horas + 'h para ' + eq + '. Usa otras horas.', true);
+        // choca con OTRA plantilla existente (no la que estamos editando)
+        if (planes.some(p => p.id === id && p.id !== editingId)) return show('Ya existe la plantilla de ' + horas + 'h para ' + eq + '. Usa otras horas.', true);
         const nombre = NOMBRE[eq] || (TRACT.includes(eq) ? 'Tractor' : 'Motobomba diésel ' + eq);
         if (!desc) desc = 'PLANTILLA ' + horas + 'H - ' + nombre + ' ' + eq;
         const plantilla = {
@@ -406,9 +448,15 @@ const CentroController = (function () {
         try {
             const r = await fetch(APIp, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(plantilla) });
             if (!r.ok) throw new Error('HTTP ' + r.status);
+            // si se editó y cambió el id (cambiaron las horas), borrar el registro viejo
+            if (editingId && editingId !== id) {
+                try { await fetch(APIp + '/' + encodeURIComponent(editingId), { method: 'DELETE', headers: { 'Content-Type': 'application/json' } }); } catch (e) { }
+            }
             try { const rp = await fetch(APIp); const arr = await rp.json(); if (Array.isArray(arr)) { planes = arr; localStorage.setItem('hidrofix_planes_v2', JSON.stringify(arr)); } } catch (e) { }
+            planes = planes.filter(p => !(editingId && editingId !== id && p.id === editingId));
             if (!planes.some(p => p.id === id)) planes.push(plantilla);
-            if (typeof DataManager !== 'undefined' && DataManager.logAction) DataManager.logAction('MANTENIMIENTO', 'CREAR_PLANTILLA', id + ' (' + materiales.length + ' insumos)');
+            if (typeof DataManager !== 'undefined' && DataManager.logAction) DataManager.logAction('MANTENIMIENTO', editingId ? 'EDITAR_PLANTILLA' : 'CREAR_PLANTILLA', id + ' (' + materiales.length + ' insumos)');
+            _editingId = null;
             tab = 'plantillas';
             render();
         } catch (e) {
