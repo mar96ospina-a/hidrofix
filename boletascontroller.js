@@ -76,10 +76,10 @@ const BoletasController = {
             );
         }
         const esc = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
-        const rows = [['ID', 'Fecha', 'Tipo', 'Equipo', 'Responsable', 'Items', 'Estado']];
+        const rows = [['ID', 'N° almacen', 'Fecha', 'Tipo', 'Equipo', 'Responsable', 'Items', 'Estado']];
         boletas.forEach(b => {
             const isApp = (b.tipo === 'APLICACION') || (b.id && b.id.startsWith('APP-'));
-            rows.push([b.id, b.fecha || '', isApp ? 'Aplicacion' : 'Boleta', b.equipo || '',
+            rows.push([b.id, b.nro_boleta || '', b.fecha || '', isApp ? 'Aplicacion' : 'Boleta', b.equipo || '',
                 b.solicitante || '', (b.items && b.items.length) ? b.items.length : 0, b.estado || 'GENERADO']);
         });
         const csv = '﻿' + rows.map(r => r.map(esc).join(';')).join('\n');
@@ -334,12 +334,13 @@ const BoletasController = {
                 else if (estado === 'ANULADO' || estado === 'CANCELADO') { pillBg = 'rgba(239,68,68,0.15)'; pillFg = '#ef4444'; }
                 const estadoLabel = estado.charAt(0) + estado.slice(1).toLowerCase();
                 const sent = !!b.sentEmail || estado === 'ENVIADO';
+                const nroDisp = b.nro_boleta ? ` <span style="color: var(--primary); font-weight: 700;">· N° ${String(b.nro_boleta).replace(/</g, '&lt;')}</span>` : '';
 
                 html += `
                     <tr class="table-row">
                         <td style="padding: 11px 16px;">
                             <div style="font-family: monospace; font-size: 0.82rem; font-weight: 700; color: var(--text-main); cursor: pointer;" onclick="BoletasController.printBoleta('${b.id}')" title="Ver formato de boleta">${b.id}</div>
-                            <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;">${dateDisplay} · ${typeLabel}</div>
+                            <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;">${dateDisplay} · ${typeLabel}${nroDisp}</div>
                         </td>
                         <td style="color: var(--text-muted); font-weight: 600;">${equipoDisplay}</td>
                         <td style="color: var(--text-main);">${solicitanteDisplay}</td>
@@ -349,6 +350,7 @@ const BoletasController = {
                             <button class="btn-icon" title="Ver detalle" onclick="BoletasController.showInfoCard('${b.id}')" style="color: var(--text-muted); margin-left: 6px;"><i data-lucide="eye" style="width: 16px;"></i></button>
                             <button class="btn-icon" title="Imprimir / PDF" onclick="BoletasController.printBoleta('${b.id}')" style="color: var(--text-muted); margin-left: 6px;"><i data-lucide="printer" style="width: 16px;"></i></button>
                             <button class="btn-icon" title="${sent ? 'Enviado por correo (clic: marcar NO enviado)' : 'Pendiente de enviar (clic: marcar ENVIADO)'}" onclick="BoletasController.toggleEmailStatus('${b.id}', ${!sent})" style="color: ${sent ? 'var(--primary)' : 'var(--text-muted)'}; margin-left: 6px;"><i data-lucide="${sent ? 'mail-check' : 'mail'}" style="width: 16px;"></i></button>
+                            <button class="btn-icon" title="N° de boleta del almacén" onclick="BoletasController.editarNroBoleta('${b.id}')" style="color: ${b.nro_boleta ? 'var(--primary)' : 'var(--text-muted)'}; margin-left: 6px;"><i data-lucide="pencil" style="width: 16px;"></i></button>
                             <button class="btn-icon" title="Eliminar" onclick="BoletasController.deleteBoleta('${b.id}')" style="color: #ef4444; margin-left: 6px;"><i data-lucide="trash-2" style="width: 16px;"></i></button>
                         </td>
                     </tr>
@@ -369,6 +371,41 @@ const BoletasController = {
                 alert('No se pudo eliminar el documento.');
             }
         }
+    },
+
+    // Registrar / editar el N° de boleta con que el almacén respondió la requisición
+    editarNroBoleta(id) {
+        const b = DataManager.getBoletas().find(x => x.id === id);
+        if (!b) return;
+        if (document.getElementById('nro-boleta-modal')) return;
+        const ov = document.createElement('div');
+        ov.id = 'nro-boleta-modal';
+        ov.style.cssText = 'position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;backdrop-filter:blur(3px);';
+        ov.innerHTML = `
+            <div style="background:var(--bg-panel,#191c20);color:var(--text-main,#e4e7ea);border:1px solid var(--glass-border,#2b2f35);border-radius:12px;max-width:390px;width:92%;padding:1.4rem 1.5rem;box-shadow:0 20px 60px rgba(0,0,0,.5);">
+                <h2 style="margin:0 0 .35rem;font-size:1.1rem;">N° de boleta del almacén</h2>
+                <p style="margin:0 0 1rem;color:var(--text-muted,#8a929b);font-size:.84rem;">Número con el que el almacén respondió la requisición <b style="color:var(--text-main);font-family:monospace;">${id}</b>.</p>
+                <input id="nro-boleta-input" type="text" value="${String(b.nro_boleta || '').replace(/"/g, '&quot;')}" placeholder="Ej: 123456" style="width:100%;box-sizing:border-box;margin-bottom:1rem;background:var(--bg-dark,#141619);color:var(--text-main);border:1px solid var(--glass-border);border-radius:8px;padding:.6rem .7rem;font-size:.95rem;font-family:monospace;letter-spacing:.5px;">
+                <div style="display:flex;gap:.6rem;justify-content:flex-end;">
+                    <button id="nro-cancel" style="background:transparent;color:var(--text-muted);border:1px solid var(--glass-border);border-radius:8px;padding:.5rem 1rem;cursor:pointer;">Cancelar</button>
+                    <button id="nro-save" style="background:var(--primary,#3f8a57);color:#fff;border:1px solid var(--primary-strong,#4f9c67);border-radius:8px;padding:.5rem 1.2rem;font-weight:700;cursor:pointer;">Guardar</button>
+                </div>
+            </div>`;
+        document.body.appendChild(ov);
+        const inp = ov.querySelector('#nro-boleta-input');
+        setTimeout(() => { inp.focus(); inp.select(); }, 50);
+        const close = () => ov.remove();
+        const save = () => {
+            b.nro_boleta = inp.value.trim();
+            try { DataManager.saveBoleta(b); } catch (e) { }
+            try { DataManager.logAction('BOLETAS', 'NRO_ALMACEN', `${id} → N° ${b.nro_boleta || '(vacío)'}`); } catch (e) { }
+            close();
+            this.render();
+        };
+        ov.querySelector('#nro-cancel').onclick = close;
+        ov.querySelector('#nro-save').onclick = save;
+        ov.addEventListener('click', e => { if (e.target === ov) close(); });
+        inp.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); save(); } if (e.key === 'Escape') close(); });
     },
 
     editBoleta(id) {

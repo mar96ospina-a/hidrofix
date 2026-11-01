@@ -22,7 +22,7 @@
             cols: ['codigo', 'descripcion', 'ubicacion', 'funcion', 'potenciaHP', 'horometro_actual', 'consumo_real_acumulado', 'horas_consumo_acumulado', 'potenciaKw', 'consumo', 'proveedor', 'fecha_ultima_actividad', 'variador', 'caudal'],
             json: [], num: ['horometro_actual', 'consumo_real_acumulado', 'horas_consumo_acumulado'] },
         boletas: { table: 'boletas', pk: 'id',
-            cols: ['id', 'fecha', 'solicitante', 'equipo', 'items', 'estado', 'actividad'],
+            cols: ['id', 'fecha', 'solicitante', 'equipo', 'items', 'estado', 'actividad', 'nro_boleta'],
             json: ['items'], num: [] },
         actividades: { table: 'actividades', pk: 'id',
             cols: ['id', 'fecha', 'labor', 'accion', 'zona', 'responsable', 'estado', 'area', 'equipo'],
