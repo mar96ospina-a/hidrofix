@@ -37,36 +37,66 @@ const ActividadesController = (function () {
         });
     }
 
-    function kpis(rows) {
-        const term = rows.filter(a => a.estado === 'Terminado').length;
-        const pend = rows.filter(a => a.estado !== 'Terminado').length;
-        const resp = new Set(rows.map(a => a.responsable)).size;
-        const card = (lab, val, color) =>
-            `<div class="glass-panel" style="padding:0.9rem 1.1rem;">
-                <div style="font-size:0.72rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;">${lab}</div>
-                <div style="font-size:1.6rem;font-weight:800;color:${color};margin-top:2px;line-height:1.1;">${val}</div>
-            </div>`;
-        return `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:1.5rem;">
-            ${card('Actividades', rows.length, 'var(--text-main)')}
-            ${card('Terminadas', term, 'var(--primary)')}
-            ${card('Pendientes/curso', pend, '#f5a623')}
-            ${card('Responsables', resp, 'var(--text-main)')}
-        </div>`;
-    }
+    let vista = 'tablero';
+    let _charts = [];
 
     function badge(estado) {
-        const m = { 'Terminado': ['var(--primary)', 'rgba(47,178,74,.15)'], 'En ejecución': ['#f5a623', 'rgba(245,166,35,.15)'], 'Pendiente': ['var(--danger)', 'rgba(239,71,81,.15)'] };
+        const m = { 'Terminado': ['var(--primary)', 'rgba(47,178,74,.15)'], 'En ejecución': ['#c08a3a', 'rgba(192,138,58,.15)'], 'Pendiente': ['var(--danger)', 'rgba(239,71,81,.15)'] };
         const c = m[estado] || ['var(--text-muted)', 'rgba(128,128,128,.15)'];
         return `<span style="background:${c[1]};color:${c[0]};padding:2px 10px;border-radius:999px;font-size:.72rem;font-weight:700;">${estado}</span>`;
     }
 
     function opts(arr, sel) { return '<option value="">Todos</option>' + arr.map(x => `<option ${x === sel ? 'selected' : ''}>${x}</option>`).join(''); }
 
+    // colores del tema actual (claro/oscuro)
+    function tc() {
+        const cs = getComputedStyle(document.documentElement);
+        const g = (n, f) => { const v = (cs.getPropertyValue(n) || '').trim(); return v || f; };
+        return { text: g('--text-main', '#1a1f26'), muted: g('--text-muted', '#8a929b'), line: g('--glass-border', '#d7dbe0'),
+                 green: g('--primary', '#2f7a47'), amber: '#c08a3a', red: g('--danger', '#c05058'), panel: g('--bg-panel', '#ffffff') };
+    }
+
+    function kpiTiles(rows) {
+        const term = rows.filter(a => a.estado === 'Terminado').length;
+        const ejec = rows.filter(a => a.estado === 'En ejecución').length;
+        const pend = rows.filter(a => a.estado === 'Pendiente').length;
+        const resp = new Set(rows.map(a => a.responsable).filter(Boolean)).size;
+        const cumpl = rows.length ? Math.round(term / rows.length * 100) : 0;
+        const card = (lab, val, color, sub) =>
+            `<div class="glass-panel" style="padding:0.9rem 1.1rem;">
+                <div style="font-size:0.7rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;">${lab}</div>
+                <div style="font-size:1.6rem;font-weight:800;color:${color};margin-top:2px;line-height:1.1;">${val}${sub || ''}</div>
+            </div>`;
+        return `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(128px,1fr));gap:12px;margin-bottom:1.25rem;">
+            ${card('Total', rows.length, 'var(--text-main)')}
+            ${card('Terminadas', term, 'var(--primary)')}
+            ${card('En ejecución', ejec, '#c08a3a')}
+            ${card('Pendientes', pend, pend ? 'var(--danger)' : 'var(--text-main)')}
+            ${card('Cumplimiento', cumpl, 'var(--primary)', '<span style="font-size:.95rem;font-weight:700;">%</span>')}
+            ${card('Responsables', resp, 'var(--text-main)')}
+        </div>`;
+    }
+
+    function destroyCharts() { _charts.forEach(c => { try { c.destroy(); } catch (e) { } }); _charts = []; }
+
     function render() {
+        destroyCharts();
         const rows = filtered();
+        const tabBtn = (id, label) => `<button data-vista="${id}" style="padding:7px 16px;border-radius:7px;border:none;cursor:pointer;font-weight:700;font-size:.82rem;background:${vista === id ? 'var(--primary)' : 'transparent'};color:${vista === id ? '#fff' : 'var(--text-muted)'};">${label}</button>`;
+        document.getElementById('actividades-content').innerHTML = `
+            ${kpiTiles(rows)}
+            <div style="display:inline-flex;background:var(--primary-soft);padding:4px;border-radius:10px;gap:4px;margin-bottom:1.25rem;">
+                ${tabBtn('tablero', 'Tablero')}${tabBtn('listado', 'Listado')}
+            </div>
+            <div id="act-view"></div>`;
+        document.querySelectorAll('[data-vista]').forEach(b => b.onclick = () => { vista = b.getAttribute('data-vista'); render(); });
+        if (vista === 'tablero') renderTablero(rows); else renderListado(rows);
+        if (window.lucide) lucide.createIcons();
+    }
+
+    function renderListado(rows) {
         const fieldStyle = 'background:var(--bg-panel);color:var(--text-main);border:1px solid var(--glass-border);border-radius:8px;padding:.5rem .7rem;font-size:.85rem;outline:none;';
-        const html = `
-            ${kpis(rows)}
+        document.getElementById('act-view').innerHTML = `
             <div class="glass-panel" style="padding:.7rem 1rem;margin-bottom:1.25rem;display:flex;gap:.6rem;flex-wrap:wrap;align-items:center;justify-content:space-between;">
                 <div style="display:flex;gap:.6rem;flex-wrap:wrap;align-items:center;flex:1;">
                     <div style="position:relative;flex:1;min-width:180px;max-width:300px;">
@@ -104,9 +134,108 @@ const ActividadesController = (function () {
                 </div>
                 <div style="padding:.7rem .9rem;color:var(--text-muted);font-size:.78rem;border-top:1px solid var(--glass-border);">Mostrando ${rows.length} de ${data.length} actividades</div>
             </div>`;
-        document.getElementById('actividades-content').innerHTML = html;
         wire();
         if (window.lucide) lucide.createIcons();
+    }
+
+    function aggBy(rows, key) {
+        const m = {}; rows.forEach(a => { const k = (a[key] || '—'); m[k] = (m[k] || 0) + 1; });
+        return Object.keys(m).map(k => ({ k, v: m[k] })).sort((a, b) => b.v - a.v);
+    }
+
+    // etiqueta de valor al final de barras horizontales
+    const pBarLabels = { id: 'pBarLabels', afterDatasetsDraw(chart) {
+        const ctx = chart.ctx; const col = tc();
+        chart.data.datasets.forEach((ds, di) => {
+            const meta = chart.getDatasetMeta(di); if (meta.hidden) return;
+            meta.data.forEach((bar, i) => {
+                const v = ds.data[i]; if (!v) return;
+                ctx.save(); ctx.fillStyle = col.text; ctx.font = '600 11px Inter, system-ui, sans-serif';
+                ctx.textBaseline = 'middle'; ctx.textAlign = 'left';
+                ctx.fillText(v, bar.x + 6, bar.y); ctx.restore();
+            });
+        });
+    } };
+    function pCenter(total) {
+        return { id: 'pCenter', afterDraw(chart) {
+            const ca = chart.chartArea; if (!ca) return; const col = tc(); const ctx = chart.ctx;
+            const cx = ca.left + ca.width / 2, cy = ca.top + ca.height / 2;
+            ctx.save(); ctx.textAlign = 'center';
+            ctx.fillStyle = col.text; ctx.font = '800 26px Inter, system-ui, sans-serif'; ctx.fillText(total, cx, cy - 2);
+            ctx.fillStyle = col.muted; ctx.font = '600 10px Inter, system-ui, sans-serif'; ctx.fillText('ACTIVIDADES', cx, cy + 16);
+            ctx.restore();
+        } };
+    }
+
+    function renderTablero(rows) {
+        const host = document.getElementById('act-view');
+        const title = t => `<div style="font-weight:700;font-size:.95rem;margin-bottom:.9rem;color:var(--text-main);">${t}</div>`;
+        host.innerHTML = `
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1rem;">
+                <div class="glass-panel" style="padding:1.1rem 1.2rem;">${title('Distribución por estado')}<div style="position:relative;height:250px;"><canvas id="ch-estado"></canvas></div></div>
+                <div class="glass-panel" style="padding:1.1rem 1.2rem;">${title('Actividades por responsable')}<div style="position:relative;height:250px;"><canvas id="ch-resp"></canvas></div></div>
+            </div>
+            <div class="glass-panel" style="padding:1.1rem 1.2rem;margin-top:1rem;">${title('Tendencia mensual')}<div style="position:relative;height:280px;"><canvas id="ch-mes"></canvas></div></div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1rem;margin-top:1rem;">
+                <div class="glass-panel" style="padding:1.1rem 1.2rem;">${title('Actividades por acción')}<div style="position:relative;height:340px;"><canvas id="ch-accion"></canvas></div></div>
+                <div class="glass-panel" style="padding:1.1rem 1.2rem;">${title('Actividades por labor')}<div style="position:relative;height:340px;"><canvas id="ch-labor"></canvas></div></div>
+            </div>`;
+        if (!window.Chart) { host.insertAdjacentHTML('afterbegin', '<p style="color:var(--danger);">No se pudieron cargar las gráficas (Chart.js).</p>'); return; }
+        buildCharts(rows);
+    }
+
+    function buildCharts(rows) {
+        const col = tc();
+        const EST = ['Terminado', 'En ejecución', 'Pendiente'];
+        const EC = { 'Terminado': col.green, 'En ejecución': col.amber, 'Pendiente': col.red };
+        const axis = () => ({ ticks: { color: col.muted, font: { size: 11 } }, grid: { color: col.line }, border: { display: false } });
+        const legend = (pos) => ({ position: pos || 'top', labels: { color: col.muted, usePointStyle: true, pointStyleWidth: 8, boxHeight: 7, font: { size: 11 } } });
+        const C = (el, cfg) => { const e = document.getElementById(el); if (e) _charts.push(new Chart(e, cfg)); };
+
+        // 1) Distribución por estado (doughnut)
+        C('ch-estado', {
+            type: 'doughnut',
+            data: { labels: EST, datasets: [{ data: EST.map(e => rows.filter(a => a.estado === e).length), backgroundColor: EST.map(e => EC[e]), borderColor: col.panel, borderWidth: 2 }] },
+            options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: legend('bottom') } },
+            plugins: [pCenter(rows.length)]
+        });
+
+        // 2) Por responsable (barras apiladas por estado)
+        const resps = [...new Set(rows.map(a => a.responsable).filter(Boolean))];
+        C('ch-resp', {
+            type: 'bar',
+            data: { labels: resps, datasets: EST.map(e => ({ label: e, data: resps.map(r => rows.filter(a => a.responsable === r && a.estado === e).length), backgroundColor: EC[e], borderRadius: 4, maxBarThickness: 46 })) },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: legend('top') }, scales: { x: Object.assign({ stacked: true }, axis()), y: Object.assign({ stacked: true, beginAtZero: true }, axis()) } }
+        });
+
+        // 3) Tendencia mensual (área por estado)
+        const meses = [...new Set(rows.map(a => (a.fecha || '').slice(0, 7)).filter(Boolean))].sort();
+        const MES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+        const mLab = meses.map(m => { const p = m.split('-'); return (MES[(+p[1]) - 1] || p[1]) + ' ' + p[0]; });
+        const hex = (h) => h; // colores ya resueltos
+        C('ch-mes', {
+            type: 'line',
+            data: { labels: mLab, datasets: EST.map(e => ({ label: e, data: meses.map(m => rows.filter(a => (a.fecha || '').slice(0, 7) === m && a.estado === e).length), borderColor: EC[e], backgroundColor: EC[e] + '2e', fill: true, tension: .35, borderWidth: 2, pointRadius: 2, pointHoverRadius: 4 })) },
+            options: { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false }, plugins: { legend: legend('top') }, scales: { x: axis(), y: Object.assign({ beginAtZero: true }, axis()) } }
+        });
+
+        // 4) Por acción (barras horizontales, top 12)
+        const acc = aggBy(rows, 'accion').slice(0, 12);
+        C('ch-accion', {
+            type: 'bar',
+            data: { labels: acc.map(x => x.k), datasets: [{ data: acc.map(x => x.v), backgroundColor: col.green, borderRadius: 4, maxBarThickness: 22 }] },
+            options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, layout: { padding: { right: 24 } }, plugins: { legend: { display: false } }, scales: { x: Object.assign({ beginAtZero: true }, axis()), y: axis() } },
+            plugins: [pBarLabels]
+        });
+
+        // 5) Por labor (barras horizontales, top 12)
+        const lab = aggBy(rows, 'labor').slice(0, 12);
+        C('ch-labor', {
+            type: 'bar',
+            data: { labels: lab.map(x => x.k), datasets: [{ data: lab.map(x => x.v), backgroundColor: col.amber, borderRadius: 4, maxBarThickness: 22 }] },
+            options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, layout: { padding: { right: 24 } }, plugins: { legend: { display: false } }, scales: { x: Object.assign({ beginAtZero: true }, axis()), y: axis() } },
+            plugins: [pBarLabels]
+        });
     }
 
     function wire() {
