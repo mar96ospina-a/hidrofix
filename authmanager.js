@@ -187,7 +187,7 @@ const AuthManager = {
                 admin:   'ALL',
                 ana:     ['centro', 'actividades', 'boletas', 'calendario', 'programacion', 'equipos', 'materiales', 'auditoria'], // Coordinadora: supervisa
                 johan:   ['actividades', 'programacion', 'calendario', 'centro'],  // Analista I: labores/rutas
-                jvargas: ['boletas', 'centro']                                     // Auxiliar: boletas (genera desde Plantillas)
+                jvargas: ['boletas', 'centro', 'materiales']                       // Auxiliar: boletas + maestro de materiales
             };
             const uname = (user.username || '').toLowerCase();
             const allowed = PERMS[uname];
