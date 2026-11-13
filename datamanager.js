@@ -739,6 +739,7 @@ const DataManager = {
 
         try {
             localStorage.setItem('hidrofix_materiales_v3', JSON.stringify(materials));
+            this.logAction('MATERIALES', index >= 0 ? 'EDITAR' : 'CREAR', 'Material ' + (material.codigo || '') + ' - ' + (material.descripcion || ''));
             return true;
         } catch (e) {
             console.error("Storage Error (Materials):", e);
@@ -754,6 +755,7 @@ const DataManager = {
 
         if (materials.length < initialLength) {
             localStorage.setItem('hidrofix_materiales_v3', JSON.stringify(materials));
+            this.logAction('MATERIALES', 'ELIMINAR', 'Material ' + codigo);
             return true;
         }
         return false;

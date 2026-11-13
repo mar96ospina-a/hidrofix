@@ -660,6 +660,7 @@ const EquiposController = {
         }
 
         DataManager.saveEquipos(this.equipos);
+        try { DataManager.logAction('EQUIPOS', index === -1 ? 'CREAR' : 'EDITAR', 'Equipo ' + codigo); } catch (e) {}
 
         this.renderTableData(this.equipos);
         this.closeModal();
@@ -674,6 +675,7 @@ const EquiposController = {
         if (index > -1) {
             this.equipos.splice(index, 1);
             DataManager.saveEquipos(this.equipos);
+            try { DataManager.logAction('EQUIPOS', 'ELIMINAR', 'Equipo ' + codigo); } catch (e) {}
             this.renderTableData(this.equipos);
             this.recalculateAlerts();
             this.renderDashboardWidgets();

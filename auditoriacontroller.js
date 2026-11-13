@@ -2,6 +2,21 @@ const AuditoriaController = {
     init() {
         console.log("AuditoriaController Initialized");
         this.render();
+        this.loadFromServer();
+    },
+
+    async loadFromServer() {
+        // Trae TODOS los movimientos desde la nube (audit_logs), no solo el cache local,
+        // para que el admin vea las acciones de todos los usuarios (crear/editar/eliminar).
+        try {
+            const server = await DataManager.getAuditLogsFromServer();
+            if (Array.isArray(server)) {
+                this._serverLogs = server;
+                this.loadLogs();
+            }
+        } catch (e) {
+            console.warn('Auditoría: no se pudo cargar del servidor', e);
+        }
     },
 
     render() {
@@ -47,8 +62,11 @@ const AuditoriaController = {
     },
 
     loadLogs() {
-        // Mock data for now, pending DataManager implementation
-        const logs = DataManager.getAuditLogs ? DataManager.getAuditLogs() : [];
+        // Prefiere los registros del servidor (todos los usuarios); si no, cache local.
+        const source = (this._serverLogs && this._serverLogs.length)
+            ? this._serverLogs
+            : (DataManager.getAuditLogs ? DataManager.getAuditLogs() : []);
+        const logs = source.slice();
         const tbody = document.getElementById('audit-logs-body');
         tbody.innerHTML = '';
 
