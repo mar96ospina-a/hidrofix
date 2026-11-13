@@ -163,8 +163,9 @@
                 localStorage.setItem('hidrofix_token', td.access_token);
                 localStorage.setItem('sb_refresh_token', td.refresh_token);
             } catch (e) { }
-            // Traer perfil (rol, nombre, avatar) desde la vista user_cards
-            var pr = await _fetch(REST + 'user_cards?username=eq.' + encodeURIComponent(body.username) + '&select=*', {
+            // Traer perfil (rol, nombre, avatar) desde la tabla base users (RLS Fase 1: fila propia),
+            // no desde user_cards (que ya no expone role ni job_title a anon).
+            var pr = await _fetch(REST + 'users?username=eq.' + encodeURIComponent(body.username) + '&select=role,job_title,avatar_type,avatar_data,full_name,must_change_password', {
                 headers: { 'apikey': ANON, 'Authorization': 'Bearer ' + td.access_token }
             });
             var profs = pr.ok ? await pr.json() : [];
