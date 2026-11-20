@@ -3,11 +3,11 @@ const CentroController = (function () {
     const APIp = location.origin + '/api/planes';
     const APIb = location.origin + '/api/boletas';
     const APIa = location.origin + '/api/actividades';
-    const DIESEL = ['331001', '331002', '331425', '336003', '336401', '336407', '336410', '336413', '336416', '336422', '336428', '337301', '336701', '336702', '336904', '336907', '336910'];
+    const DIESEL = ['331001', '331002', '331425', '336001', '336002', '336003', '336401', '336407', '336410', '336413', '336416', '336422', '336428', '337301', '336701', '336702', '336904', '336907', '336910'];
     const TRACT = ['331001', '331002', '331425'];
     const NOMBRE = {
         '331001': 'Tractor Farmall 75HP', '331002': 'Tractor Farmall 75HP', '331425': 'Tractor Quantum 65V',
-        '336401': 'Motobomba Perkins', '336003': 'Equipo Lister No.3', '336907': 'Bomba diésel hidroaxial'
+        '336401': 'Motobomba Perkins', '336001': 'Equipo Lister No.1', '336002': 'Equipo Lister No.2', '336003': 'Equipo Lister No.3', '336907': 'Bomba diésel hidroaxial'
     };
     let planes = [];
     let actividades = [];   // actividades de campo (Recursos Hídricos)
